@@ -133,7 +133,8 @@ requires: [llm]             # will not run until llm finishes
 apiResponse:
   success: true
   response:
-    answer: get('llm')      # output of the llm resource
+    # chat output is the raw response map; reply text is at .message.content
+    answer: get('llm').message.content
 ```
 
 Run and test:
@@ -152,7 +153,7 @@ curl -X POST http://localhost:16395/api/v1/chat \
 
 | Action | Output | Minimal form |
 |---|---|---|
-| `chat` | model response text | `chat: { model: llama3.2:1b, prompt: "..." }` |
+| `chat` | response map; text at `.message.content` | `chat: { model: llama3.2:1b, prompt: "..." }` |
 | `httpClient` | parsed response body | `httpClient: { method: GET, url: "https://..." }` |
 | `sql` | row set | `sql: { connectionName: analytics, query: "SELECT ..." }` |
 | `python` | stdout (parsed as JSON) | `python: { script: "print(...)" }` |

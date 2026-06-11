@@ -59,7 +59,10 @@ chat:
   streaming: true           # Ollama only; kdeps accumulates chunks before returning
 ```
 
-Output access: `get('id')` for text, `get('id').answer` when `jsonResponse: true`.
+Output access: the output is the raw response map -- reply text is at
+`get('id').message.content`. With `jsonResponse: true` the output is the
+parsed JSON object (`get('id').answer`). Raw response also via
+`llm.response('id')`.
 
 ## httpClient
 
@@ -359,17 +362,13 @@ telephony:
   terminator: "#"         # digit that ends input
   timeout: 5s             # no-input timeout
   interDigitTimeout: 2s
-  # menu
-  tries: 3                # retry count (default 1)
+  # menu -- matches map input to result.status: match + result.interpretation;
+  # branch with downstream resources via validations.skip
   matches:
     - keys: ["1"]         # DTMF digits or speech phrases
-      invoke: salesFlow   # component to invoke on match
     - keys: ["2"]
-      expr:               # inline expressions on match
-        - set('branch', 'support')
-  onNoMatch: "say('No such option.')"
-  onNoInput: "say('I did not hear anything.')"
-  onFailure: "telephony.action('hangup')"
+  # tries, onNoMatch, onNoInput, onFailure, matches[].invoke/expr are
+  # schema-accepted but NOT yet evaluated -- do not rely on them
   # dial
   to: ["sip:agent@pbx.example.com", "+15005550001"]
   from: "+18005550000"    # caller ID override
@@ -389,6 +388,18 @@ Output: `.twiml` (XML string); for ask/menu also `.result` with `status`
 `interpretation`, `confidence`, `match`. Accessors: `telephony.callId()`,
 `.from()`, `.to()`, `.status()`, `.utterance()`, `.digits()`, `.speech()`,
 `.confidence()`, `.twiml()`, `.match()`.
+
+Constraints (verified against the binary):
+- `ask` and `menu` require at least one of `grammar`, `grammarUrl`, `limit`,
+  `matches` or validation fails.
+- Telephony fields are static: `{{ }}` templates inside them (e.g. a dynamic
+  `say:`) are NOT interpolated. Return dynamic content via `apiResponse`
+  instead and let the provider glue speak it.
+- `telephony.*` accessors fail static analysis inside `{{ }}` templates.
+  Prefer reading webhook body fields directly (`get('SpeechResult')`,
+  `get('Digits')`), or copy via `before: [set('q', telephony.speech())]`
+  -- note the session accessors only return values after a telephony
+  resource has run in the same request.
 
 ## botReply
 
