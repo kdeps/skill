@@ -33,6 +33,7 @@ references/
   resources.md              # full per-action schemas
   expressions.md            # expression functions and operators
   workflow-input.md         # settings.input sources (api, bot, file)
+  workflow-settings.md      # apiServer, auth, TLS, agentSettings, session
 tests/
   validate.sh               # validate every resource type + component + agency
   fixtures/                 # minimal workflows used by the test script
@@ -46,6 +47,8 @@ Requires `kdeps` on your PATH:
 ./tests/validate.sh          # schema validation (19 fixtures)
 ./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smoke tests
 ```
+
+CI runs `./tests/validate.sh` on every push to `main`.
 
 The script validates one fixture per primary resource action (`chat`,
 `httpClient`, `sql`, `python`, `exec`, `email`, `browser`, `scraper`,

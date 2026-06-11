@@ -19,6 +19,36 @@ kdeps builds AI apps from YAML. Two modes:
   agencies, and components register as callable tools; the LLM routes between
   them.
 
+### Agent mode (`kdeps serve`)
+
+Each workflow becomes one LLM tool named after `metadata.name`. The model reads
+from stdin, picks tools, and synthesizes a final answer. Individual resources
+are never exposed — only whole workflows, agencies, and installed components.
+
+```bash
+kdeps serve ./my-agent/                              # one workflow = one tool
+kdeps serve ./agents/                                # every workflow in folder
+kdeps serve ./my-agency/ --model llama3.2 \
+  --system "You are a DevOps assistant."
+```
+
+```bash
+KDEPS_AGENT_MODEL=claude-3-5-sonnet
+KDEPS_AGENT_BACKEND=anthropic
+```
+
+Opt-in component tools inside a `chat:` resource:
+
+```yaml
+chat:
+  prompt: "Research {{ get('q') }}"
+  componentTools: [scraper, search]
+```
+
+For `settings.llm` stdin REPL config, read `references/workflow-input.md`.
+For `apiServer` auth, TLS, rate limits, and session, read
+`references/workflow-settings.md`.
+
 ## What to create
 
 | User wants | Create | Manifest |
@@ -65,7 +95,8 @@ Rules of thumb:
   `set('k', v)` stores a value; `input('name')` reads a component input;
   `env('VAR')` reads an environment variable. For all functions, operators,
   and iteration contexts, read `references/expressions.md`. For workflow input
-  sources (`api`, `bot`, `file`), read `references/workflow-input.md`.
+  sources (`api`, `bot`, `file`), read `references/workflow-input.md`. For
+  `apiServer`, auth, TLS, and `agentSettings`, read `references/workflow-settings.md`.
 
 ## Creating an agent (workflow)
 
@@ -306,8 +337,12 @@ resources:
   - actionId: greet           # prefix with component name to avoid collisions
     name: Greet
     exec:
-      command: "echo '{{ input('message') }}, {{ input('recipient') }}!'"
+      command: "echo '{{ get('greeter.message') }}, {{ get('greeter.recipient') }}!'"
 ```
+
+Inside component resources, read caller `with:` values via
+`get('<componentName>.<input>')`. Use `input('name')` only in component-only
+sub-workflows with no HTTP request body (see `references/expressions.md`).
 
 Calling it from a workflow resource:
 
@@ -442,7 +477,7 @@ Run the skill's fixture suite (requires `kdeps` on PATH):
 
 ```bash
 ./tests/validate.sh          # schema validation for every resource type
-./tests/validate.sh --run    # adds an exec runtime smoke test
+./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smokes
 ```
 
 For agent mode testing: `kdeps serve <path>` (tool name = `metadata.name`).
