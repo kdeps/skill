@@ -336,6 +336,70 @@ browser:
       script: "document.title"
 ```
 
+## telephony
+
+In-call actions for Twilio-compatible providers. The provider POSTs its call
+webhook (fields like `CallSid`, `From`, `To`, `Digits`, `SpeechResult`) to a
+kdeps API route; the resource builds a TwiML response returned via
+`apiResponse`. Call state is shared across telephony resources in the same run.
+
+```yaml
+telephony:
+  action: menu            # answer, say, ask, menu, dial, record,
+                          # mute, unmute, hangup, reject, redirect
+  # say / prompt
+  say: "Press 1 for sales."  # TTS text
+  voice: alice               # TTS voice name
+  audio: ""                  # audio URL/path instead of TTS
+  # input collection (ask / menu)
+  mode: dtmf              # dtmf (default), speech, both
+  grammar: ""             # inline GRXML grammar
+  grammarUrl: ""
+  limit: 4                # max digits
+  terminator: "#"         # digit that ends input
+  timeout: 5s             # no-input timeout
+  interDigitTimeout: 2s
+  # menu
+  tries: 3                # retry count (default 1)
+  matches:
+    - keys: ["1"]         # DTMF digits or speech phrases
+      invoke: salesFlow   # component to invoke on match
+    - keys: ["2"]
+      expr:               # inline expressions on match
+        - set('branch', 'support')
+  onNoMatch: "say('No such option.')"
+  onNoInput: "say('I did not hear anything.')"
+  onFailure: "telephony.action('hangup')"
+  # dial
+  to: ["sip:agent@pbx.example.com", "+15005550001"]
+  from: "+18005550000"    # caller ID override
+  for: 30s                # dial timeout
+  # record
+  maxDuration: 60s
+  interruptible: true
+  format: wav             # wav (default) or mp3
+  # hangup / reject
+  reason: busy
+  headers:                # SIP headers
+    X-Custom: value
+```
+
+Output: `.twiml` (XML string); for ask/menu also `.result` with `status`
+(`match`/`nomatch`/`noinput`/`hangup`/`stop`), `mode`, `utterance`,
+`interpretation`, `confidence`, `match`. Accessors: `telephony.callId()`,
+`.from()`, `.to()`, `.status()`, `.utterance()`, `.digits()`, `.speech()`,
+`.confidence()`, `.twiml()`, `.match()`.
+
+## botReply
+
+Sends a text reply to the bot platform that delivered the current message
+(Discord, Slack, Telegram, WhatsApp, or stdout in stateless mode).
+
+```yaml
+botReply:
+  text: "{{ get('llm') }}"
+```
+
 ## agent (inter-agent delegation)
 
 Runs another agent's full workflow and returns its `apiResponse.response`.
@@ -385,6 +449,7 @@ apiResponse:
   headers:
     Content-Type: application/json
     X-Total-Count: get('fetchItems').total
+  statusCode: 200               # optional HTTP status code
   model: llama3.2:1b            # optional metadata override; if a chat resource
   backend: ollama               # ran, model/backend are added automatically
 ```

@@ -37,9 +37,9 @@ Rules of thumb:
   (`Workflow`, `Component`, or `Agency`).
 - A resource has exactly **one primary action** (`chat`, `httpClient`, `sql`,
   `python`, `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
-  `embedding`, `agent`, or `component`). `apiResponse:` is not a primary
-  action -- it may sit on the same resource as one, formatting that resource's
-  output into the HTTP response.
+  `embedding`, `telephony`, `botReply`, `agent`, or `component`).
+  `apiResponse:` is not a primary action -- it may sit on the same resource as
+  one, formatting that resource's output into the HTTP response.
 - One resource per file. The loader reads only the first YAML document in a
   file -- do not put multiple resources in one file separated by `---`.
 - Every resource requires both `actionId` (unique across the whole workflow,
@@ -157,6 +157,8 @@ curl -X POST http://localhost:16395/api/v1/chat \
 | `sql` | row set | `sql: { connectionName: analytics, query: "SELECT ..." }` |
 | `python` | stdout (parsed as JSON) | `python: { script: "print(...)" }` |
 | `exec` | stdout | `exec: { command: "echo hi" }` |
+| `telephony` | TwiML for voice calls | `telephony: { action: say, say: "Hello" }` |
+| `botReply` | reply to bot platform | `botReply: { text: "{{ get('llm') }}" }` |
 | `apiResponse` | HTTP response | `apiResponse: { success: true, response: { ... } }` |
 | `agent` | target agent's apiResponse | `agent: { name: other-agent, params: { k: v } }` |
 | `component` | component result | `component: { name: scraper, with: { url: "..." } }` |
