@@ -4,4 +4,4 @@ requires: [call]
 apiResponse:
   success: true
   response:
-    echoed: get('call').echoed
+    result: get('call').result

@@ -113,6 +113,8 @@ validate_path "component/echo" "$FIXTURES/components/echo"
 # --- Workflow patterns ---
 validate_path "workflow/inline-resources" "$FIXTURES/workflows/inline-resources"
 validate_path "workflow/file-input" "$FIXTURES/workflows/file-input"
+validate_path "workflow/component-input" "$FIXTURES/workflows/component-input"
+validate_path "workflow/component-caller" "$FIXTURES/workflows/component-caller"
 
 # --- Agency ---
 validate_path "agency/simple" "$FIXTURES/agencies/simple"
@@ -143,6 +145,10 @@ if $RUN_TESTS; then
   run_server_smoke "agency (inter-agent)" \
     "$FIXTURES/agencies/simple" 17615 \
     'curl -sf -H "Authorization: Bearer skill-test-token" "http://127.0.0.1:17615/api/v1/greet?name=Skill" | grep -q "Hello, Skill"'
+
+  run_server_smoke "component-caller (HTTP)" \
+    "$FIXTURES/workflows/component-caller" 17616 \
+    'curl -sf -X POST -H "Authorization: Bearer skill-test-token" -H "Content-Type: application/json" -d "{\"text\":\"hello\"}" http://127.0.0.1:17616/api/v1/transform | grep -qi "HELLO"'
 fi
 
 echo

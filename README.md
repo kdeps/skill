@@ -43,8 +43,8 @@ tests/
 Requires `kdeps` on your PATH:
 
 ```bash
-./tests/validate.sh          # schema validation (16 fixtures)
-./tests/validate.sh --run    # adds HTTP, botReply, and agency runtime smoke tests
+./tests/validate.sh          # schema validation (19 fixtures)
+./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smoke tests
 ```
 
 The script validates one fixture per primary resource action (`chat`,

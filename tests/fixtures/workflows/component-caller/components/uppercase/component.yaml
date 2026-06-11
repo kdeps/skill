@@ -1,0 +1,25 @@
+apiVersion: kdeps.io/v1
+kind: Component
+
+metadata:
+  name: uppercase
+  version: "1.0.0"
+  description: Uppercase a string
+  targetActionId: upper
+
+interface:
+  inputs:
+    - name: text
+      type: string
+      required: true
+
+resources:
+  - actionId: upper
+    name: Uppercase
+    exec:
+      command: |
+        python3 - <<'PYEOF'
+        import json
+        text = """{{ get('uppercase.text') }}"""
+        print(json.dumps({"result": text.upper()}))
+        PYEOF

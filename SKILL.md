@@ -3,7 +3,8 @@ name: kdeps
 description: >
   Create kdeps components, agents (workflows), and agencies. Use when the user
   wants to build a kdeps project, write workflow.yaml, component.yaml, or
-  agency.yaml, add resources (chat, httpClient, sql, python, exec, apiResponse),
+  agency.yaml, configure workflow input (api, bot, file), add resources (chat,
+  httpClient, sql, python, exec, scraper, searchWeb, botReply, apiResponse),
   wire multi-agent pipelines, or package/deploy a kdeps app.
 ---
 
@@ -239,7 +240,9 @@ settings:
 # Invoked via component: from a parent workflow; inputs via with:
 ```
 
-See `tests/fixtures/workflows/file-input/` and
+See `tests/fixtures/workflows/file-input/`,
+`tests/fixtures/workflows/component-input/` (api-only sub-workflow),
+`tests/fixtures/workflows/component-caller/` (parent + local component), and
 `tests/fixtures/resources/botReply/`.
 
 ### Built-in input component

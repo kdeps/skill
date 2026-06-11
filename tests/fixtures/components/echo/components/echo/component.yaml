@@ -18,4 +18,8 @@ resources:
   - actionId: echo
     name: Echo
     exec:
-      command: "echo '{{ input('message') }}'"
+      command: |
+        python3 - <<'PYEOF'
+        import json
+        print(json.dumps({"echoed": """{{ get('echo.message') }}"""}))
+        PYEOF

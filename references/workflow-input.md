@@ -37,8 +37,12 @@ settings:
     pythonVersion: "3.12"
   input:
     sources: [api]
-# no apiServer block — workflow only runs when invoked as a component
+# no apiServer block — workflow only runs when invoked via component: from a parent
 ```
+
+The workflow's `metadata.name` becomes the component name when installed or
+referenced. Inputs arrive through the caller's `with:` map and are read with
+`input('key')` inside the sub-workflow's resources.
 
 ### Bot
 

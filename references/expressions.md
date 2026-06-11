@@ -122,8 +122,11 @@ Inside `loop:` resources: `loop.index()` (0-based), `loop.count()` (1-based),
 
 Inside `onError.expr` / `onError.when`: `error.message`, `error.type`.
 
-Inside component resources: `{{ input('<name>') }}` reads a declared
-interface input (not `inputs.<name>` -- static analysis rejects that form).
+Inside component resources, caller-supplied `with:` values are injected as
+`get('<componentName>.<input>')` (e.g. `get('echo.message')`). Use that form
+when the parent workflow has an HTTP body — `input` is also exposed as the
+request body map and shadows the `input()` function. For component-only
+sub-workflows with no HTTP server, `input('name')` works.
 
 ## Resource-specific accessors
 

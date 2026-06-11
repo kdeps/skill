@@ -1,0 +1,12 @@
+actionId: call
+name: Call Uppercase Component
+validations:
+  check:
+    - get('text') != ''
+  error:
+    code: 400
+    message: "text is required"
+component:
+  name: uppercase
+  with:
+    text: "{{ get('text') }}"

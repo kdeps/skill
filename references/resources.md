@@ -443,6 +443,12 @@ component:
 Output access: `output('callerActionId')` -- scoped to the caller, so the same
 component can be called from multiple resources independently.
 
+Inside component resources, read caller-supplied values with
+`get('<componentName>.<input>')` (e.g. `get('scraper.url')`). Prefer this over
+`input('name')` when the parent workflow also has an HTTP request body — the
+expression env exposes `input` as the body map, which shadows the `input()`
+function.
+
 ## apiResponse (terminal)
 
 Builds the HTTP response. The last resource in the chain -- the one

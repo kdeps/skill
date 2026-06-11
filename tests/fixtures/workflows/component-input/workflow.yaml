@@ -1,0 +1,15 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-transformer
+  version: "1.0.0"
+  description: Callable sub-workflow — api input, no HTTP server
+  targetActionId: transform
+
+settings:
+  agentSettings:
+    timezone: UTC
+    pythonVersion: "3.12"
+  input:
+    sources: [api]

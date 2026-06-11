@@ -2,16 +2,16 @@ apiVersion: kdeps.io/v1
 kind: Workflow
 
 metadata:
-  name: skill-test-component
+  name: skill-component-caller
   version: "1.0.0"
-  description: Skill fixture — component invocation
+  description: Parent workflow that calls a local component
   targetActionId: respond
 
 settings:
   apiServer:
-    portNum: 17613
+    portNum: 17616
     routes:
-      - path: /api/v1/echo
+      - path: /api/v1/transform
         methods: [POST]
   agentSettings:
     timezone: UTC
