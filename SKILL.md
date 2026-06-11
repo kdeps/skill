@@ -35,9 +35,13 @@ Rules of thumb:
 
 - Every manifest starts with `apiVersion: kdeps.io/v1` and a `kind:`
   (`Workflow`, `Component`, or `Agency`).
-- A resource has exactly **one action** (`chat`, `httpClient`, `sql`, `python`,
-  `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
-  `embedding`, `agent`, `component`, or `apiResponse`).
+- A resource has exactly **one primary action** (`chat`, `httpClient`, `sql`,
+  `python`, `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
+  `embedding`, `agent`, or `component`). `apiResponse:` is not a primary
+  action -- it may sit on the same resource as one, formatting that resource's
+  output into the HTTP response.
+- One resource per file. The loader reads only the first YAML document in a
+  file -- do not put multiple resources in one file separated by `---`.
 - Every resource requires both `actionId` (unique across the whole workflow,
   including merged component resources) and `name` (human-readable label).
   Use descriptive camelCase or kebab-case IDs.
@@ -340,7 +344,10 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 
 ## Common mistakes to avoid
 
-- Putting two actions in one resource (one action per resource).
+- Putting two primary actions in one resource (the validator rejects it;
+  only `apiResponse:` may accompany a primary action).
+- Putting multiple resources in one file with `---` separators (only the
+  first document is loaded).
 - Omitting `name:` on a resource (both `actionId` and `name` are required).
 - Putting component `name`/`version`/`targetActionId` at the top level of
   `component.yaml` (they belong under `metadata:`).

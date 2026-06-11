@@ -1,9 +1,12 @@
 # kdeps Resource Action Reference
 
-Full per-action schemas for resources. Every resource has exactly one action.
-All actions work in both workflow mode and agent mode. Common cross-cutting
-fields (`actionId`, `requires`, `validations`, `before`, `after`, `items`,
-`loop`, `onError`) are at the end of this file.
+Full per-action schemas for resources. Every resource has exactly one primary
+action; `apiResponse:` may additionally sit on the same resource to format its
+output into the HTTP response. One resource per file (only the first YAML
+document in a file is loaded). All actions work in both workflow mode and
+agent mode. Common cross-cutting fields (`actionId`, `requires`,
+`validations`, `before`, `after`, `items`, `loop`, `onError`) are at the end
+of this file.
 
 ## chat (LLM)
 
@@ -367,9 +370,10 @@ component can be called from multiple resources independently.
 
 ## apiResponse (terminal)
 
-Builds the HTTP response. Always the last resource in the chain -- the one
-`metadata.targetActionId` points at. In agent mode, `response:` is what the
-LLM receives as the tool result.
+Builds the HTTP response. The last resource in the chain -- the one
+`metadata.targetActionId` points at. It can be a standalone resource, or sit
+on the same resource as a primary action (formatting that action's output).
+In agent mode, `response:` is what the LLM receives as the tool result.
 
 ```yaml
 apiResponse:
