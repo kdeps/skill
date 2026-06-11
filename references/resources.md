@@ -390,8 +390,8 @@ apiResponse:
 Available on any resource alongside its action:
 
 ```yaml
-actionId: myResource        # unique across the workflow; key for get()/output()
-name: My Resource           # optional label
+actionId: myResource        # required; unique across the workflow; key for get()/output()
+name: My Resource           # required; human-readable label
 description: What it does   # optional
 category: api               # optional grouping
 

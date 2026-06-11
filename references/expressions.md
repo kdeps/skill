@@ -19,7 +19,8 @@ set('user', data, 'session')    # store in session (persists across requests;
 
 output('llmResource')           # output of a completed resource, by actionId;
                                 # prefer over get() when auto-detection is ambiguous
-input('q')                      # strictly request inputs: param, header, body
+input('q')                      # strictly request inputs: param, header, body;
+                                # inside component resources, reads interface inputs
 
 file('*.jpg')                   # uploaded/local file content by glob
 file('*.pdf', 'first')          # selectors: first, last, count, all, mime:<type>
@@ -107,7 +108,8 @@ Inside `loop:` resources: `loop.index()` (0-based), `loop.count()` (1-based),
 
 Inside `onError.expr` / `onError.when`: `error.message`, `error.type`.
 
-Inside component resources: `inputs.<name>` reads a declared interface input.
+Inside component resources: `{{ input('<name>') }}` reads a declared
+interface input (not `inputs.<name>` -- static analysis rejects that form).
 
 ## Resource-specific accessors
 

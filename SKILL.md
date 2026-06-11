@@ -38,8 +38,9 @@ Rules of thumb:
 - A resource has exactly **one action** (`chat`, `httpClient`, `sql`, `python`,
   `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
   `embedding`, `agent`, `component`, or `apiResponse`).
-- `actionId` must be unique across the whole workflow (including merged
-  component resources). Use descriptive camelCase or kebab-case IDs.
+- Every resource requires both `actionId` (unique across the whole workflow,
+  including merged component resources) and `name` (human-readable label).
+  Use descriptive camelCase or kebab-case IDs.
 - `requires:` lists **direct** dependencies only; kdeps resolves transitive
   ones.
 - `metadata.targetActionId` names the resource whose output becomes the
@@ -50,9 +51,11 @@ Rules of thumb:
   `KDEPS_API_AUTH_TOKEN` or `api_auth_token` in `~/.kdeps/config.yaml`.
 - Components cannot contain `settings:` (no servers, no ports). They are pure
   resource bundles.
+- Every `workflow.yaml` requires a `settings:` block. Internal agency agents
+  without a server use a minimal one (e.g. `agentSettings: { timezone: "UTC" }`).
 - Expression syntax: `{{ get('key') }}` reads request params or a resource's
   output by actionId; `output('actionId')` reads structured output;
-  `set('k', v)` stores a value; `inputs.name` reads a component input;
+  `set('k', v)` stores a value; `input('name')` reads a component input;
   `env('VAR')` reads an environment variable. For all functions, operators,
   and iteration contexts, read `references/expressions.md`.
 
@@ -102,6 +105,7 @@ A resource per file under `resources/`:
 ```yaml
 # resources/llm.yaml
 actionId: llm
+name: LLM Chat
 validations:
   methods: [POST]
   routes: [/api/v1/chat]
@@ -120,6 +124,7 @@ chat:
 ```yaml
 # resources/response.yaml
 actionId: response
+name: API Response
 requires: [llm]             # will not run until llm finishes
 apiResponse:
   success: true
@@ -156,7 +161,7 @@ For the full schema of every action (chat sampling params, httpClient
 retry/cache/TLS, sql transactions, email IMAP search, browser actions,
 onError), read `references/resources.md`.
 
-Optional per-resource fields: `name`, `description`, `category`,
+Optional per-resource fields: `description`, `category`,
 `items:` (run once per list item; read `get('current')`, `get('index')`),
 `loop:` (`while:` expression with `maxIterations`, optional `every:`/`at:`),
 `before:`/`after:` (expression lists run around the action), and
@@ -193,10 +198,11 @@ my-workflow/
 ```yaml
 apiVersion: kdeps.io/v1
 kind: Component
-name: greeter                 # unique within the workflow
-version: "1.0.0"
-description: "A greeting component"
-targetActionId: greet         # default action when invoked via component:
+metadata:
+  name: greeter               # unique within the workflow
+  version: "1.0.0"
+  description: "A greeting component"
+  targetActionId: greet       # default action when invoked via component:
 setup:                        # runs once per engine lifetime (cached)
   pythonPackages: [requests]  # installed via uv pip install
   osPackages: []              # apk / apt-get / brew, auto-detected
@@ -214,16 +220,17 @@ interface:
       required: false
       default: "World"
 resources:
-  - apiVersion: kdeps.io/v1
-    actionId: greet           # prefix with component name to avoid collisions
+  - actionId: greet           # prefix with component name to avoid collisions
+    name: Greet
     exec:
-      command: "echo '{{ inputs.message }}, {{ inputs.recipient }}!'"
+      command: "echo '{{ input('message') }}, {{ input('recipient') }}!'"
 ```
 
 Calling it from a workflow resource:
 
 ```yaml
 actionId: main
+name: Call Greeter
 component:
   name: greeter
   with:                       # validated against interface.inputs
@@ -283,12 +290,22 @@ agents:
 ```
 
 Each agent is a complete, standalone workflow (own `workflow.yaml`, own
-resources, own settings). Only the entry-point agent needs an `apiServer`;
-internal agents are called via the `agent:` resource:
+resources, own settings). Only the entry-point agent needs an `apiServer`,
+but every agent still needs a `settings:` block -- give internal agents a
+minimal one:
+
+```yaml
+settings:
+  agentSettings:
+    timezone: "UTC"
+```
+
+Internal agents are called via the `agent:` resource:
 
 ```yaml
 # inside the entry-point agent's resources/
 actionId: delegate
+name: Delegate to Responder
 agent:
   name: responder-agent          # metadata.name of the target agent
   params:
@@ -324,6 +341,12 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 ## Common mistakes to avoid
 
 - Putting two actions in one resource (one action per resource).
+- Omitting `name:` on a resource (both `actionId` and `name` are required).
+- Putting component `name`/`version`/`targetActionId` at the top level of
+  `component.yaml` (they belong under `metadata:`).
+- Using `{{ inputs.x }}` inside component resources (the correct form is
+  `{{ input('x') }}`).
+- Omitting `settings:` on an internal agency agent (every workflow needs one).
 - Putting credentials, DSNs, or API keys in `workflow.yaml` (they belong in
   `~/.kdeps/config.yaml`).
 - Forgetting `targetActionId` or pointing it at a non-`apiResponse` resource.
