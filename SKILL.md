@@ -518,6 +518,8 @@ kdeps run <path>
 ```
 
 Confirm `kdeps.pkg.yaml` exists with the correct `type` and matching `version`.
+If missing, run `scripts/scaffold-pkg.sh .` from the package root (or write it
+from `metadata.name`, `metadata.version`, and the package `type`).
 For publishing steps, read `references/registry.md`.
 
 Inline self-tests in `workflow.yaml` or `agency.yaml` (HTTP assertions against

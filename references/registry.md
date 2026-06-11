@@ -66,6 +66,14 @@ separate registry packages.
 Required at the package root for `kdeps registry submit` and
 `kdeps registry verify`.
 
+Scaffold from existing metadata (run from the package root):
+
+```bash
+scripts/scaffold-pkg.sh .    # in a project the skill created
+# or from this skill repo:
+/path/to/kdeps-skill/scripts/scaffold-pkg.sh ./my-agent
+```
+
 ```yaml
 name: my-agent              # registry install name (kdeps registry install my-agent)
 version: "1.0.0"            # must match metadata.version in workflow.yaml / agency.yaml / component.yaml

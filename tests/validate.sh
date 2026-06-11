@@ -101,6 +101,36 @@ bundle_package_path() {
   return 1
 }
 
+install_roundtrip_path() {
+  local label="$1"
+  local path="$2"
+  local install_root
+  install_root=$(mktemp -d)
+  printf '%-40s ' "$label"
+  if (
+    shopt -s nullglob &&
+    cd "$path" &&
+    kdeps bundle package . >/dev/null 2>&1 &&
+    archives=( ./*.kdeps ./*.kagency ./*.komponent ) &&
+    [ "${#archives[@]}" -gt 0 ] &&
+    archive="${archives[0]}" &&
+    KDEPS_AGENTS_DIR="$install_root/agents" \
+    KDEPS_COMPONENT_DIR="$install_root/components" \
+    kdeps registry install "$archive" >/dev/null 2>&1 &&
+    rm -f ./*.kdeps ./*.kagency ./*.komponent docker-compose.yml 2>/dev/null
+  ); then
+    rm -rf "$install_root"
+    echo "OK (registry install)"
+    PASS=$((PASS + 1))
+    return 0
+  fi
+  rm -rf "$install_root"
+  rm -f "$path"/*.kdeps "$path"/*.kagency "$path"/*.komponent "$path"/docker-compose.yml 2>/dev/null
+  echo "FAIL (registry install)"
+  FAIL=$((FAIL + 1))
+  return 1
+}
+
 run_smoke() {
   local label="$1"
   local check_cmd="$2"
@@ -217,6 +247,12 @@ echo "Bundle package (workflow, component, agency):"
 bundle_package_path "bundle/workflow-exec" "$FIXTURES/resources/exec"
 bundle_package_path "bundle/component-echo" "$FIXTURES/components/echo/components/echo"
 bundle_package_path "bundle/agency-simple" "$FIXTURES/agencies/simple"
+
+echo
+echo "Registry install (bundle -> kdeps registry install):"
+install_roundtrip_path "install/workflow-exec" "$FIXTURES/resources/exec"
+install_roundtrip_path "install/component-echo" "$FIXTURES/components/echo/components/echo"
+install_roundtrip_path "install/agency-simple" "$FIXTURES/agencies/simple"
 
 echo
 if $RUN_TESTS; then

@@ -35,6 +35,8 @@ references/
   workflow-input.md         # settings.input sources (api, bot, file)
   workflow-settings.md      # apiServer, auth, TLS, agentSettings, session
   registry.md               # kdeps.pkg.yaml and publishing to kdeps.io
+scripts/
+  scaffold-pkg.sh           # generate kdeps.pkg.yaml from metadata
 tests/
   validate.sh               # validate every resource type + component + agency
   check_manifests.py        # kdeps.pkg.yaml vs metadata alignment
@@ -46,7 +48,7 @@ tests/
 Requires `kdeps` on your PATH:
 
 ```bash
-./tests/validate.sh          # validate + manifests + alignment + registry verify + bundle (77 checks)
+./tests/validate.sh          # validate + manifests + registry verify + bundle + install (80 checks)
 ./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smokes
 ```
 
