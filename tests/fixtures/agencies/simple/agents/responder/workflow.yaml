@@ -1,0 +1,19 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: responder-agent
+  version: "1.0.0"
+  description: Helper agent
+  targetActionId: respond
+
+settings:
+  agentSettings:
+    timezone: UTC
+
+resources:
+  - actionId: respond
+    name: Respond
+    apiResponse:
+      success: true
+      response: "Hello, {{ get('name', 'World') }}!"

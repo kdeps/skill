@@ -1,0 +1,13 @@
+actionId: fetch
+name: Fetch Page
+validations:
+  methods: [POST]
+  routes: [/api/v1/scrape]
+  check:
+    - get('url') != ''
+  error:
+    code: 400
+    message: "url is required"
+scraper:
+  url: "{{ get('url') }}"
+  timeout: 30

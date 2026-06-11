@@ -1,0 +1,10 @@
+actionId: browse
+name: Browse Page
+browser:
+  engine: chromium
+  url: "https://example.com"
+  headless: true
+  timeout: 30s
+  actions:
+    - action: evaluate
+      script: "document.title"

@@ -1,0 +1,32 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-inline
+  version: "1.0.0"
+  description: Skill fixture — inline resources in workflow.yaml
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17614
+    routes:
+      - path: /api/v1/inline
+        methods: [GET]
+  agentSettings:
+    timezone: UTC
+
+resources:
+  - actionId: run
+    name: Inline Exec
+    exec:
+      command: "echo '{\"inline\":true}'"
+      timeout: 10s
+
+  - actionId: respond
+    name: API Response
+    requires: [run]
+    apiResponse:
+      success: true
+      response:
+        output: get('run')

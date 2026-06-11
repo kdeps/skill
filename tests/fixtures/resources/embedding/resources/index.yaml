@@ -1,0 +1,7 @@
+actionId: index
+name: Index Document
+embedding:
+  operation: index
+  text: "{{ get('text') }}"
+  collection: skill-test
+  dbPath: /tmp/kdeps-skill-embedding.db

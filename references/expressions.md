@@ -4,6 +4,20 @@ Functions and operators usable in any field that supports `{{ }}`
 interpolation and in expression lists (`before:`, `after:`,
 `validations.check`, `validations.skip`, `onError.expr`, `onError.when`).
 
+## Jinja2 preprocessing
+
+Workflow and resource YAML files are preprocessed with Jinja2 **before** YAML
+parsing. Use `{% if env.FEATURE == 'true' %}` for build-time conditionals and
+`{{ env.PORT | int }}` for environment-driven values.
+
+kdeps **auto-protects** runtime calls (`get`, `set`, `output`, `input`, `info`,
+`file`, `json`, etc.) from Jinja2 evaluation — no `{% raw %}` wrapper needed.
+
+**Do not** use Jinja2 `{% for %}` loops over runtime values like
+`output('search').results`; Jinja2 runs at parse time when those values do not
+exist. Use expression helpers (`map`, `filter`, `join`) or a `python:` resource
+instead.
+
 ## Core functions
 
 ```yaml

@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [query]
+apiResponse:
+  success: true
+  response:
+    rows: get('query')

@@ -1,0 +1,16 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-botreply
+  version: "1.0.0"
+  description: Skill fixture — botReply resource (stateless bot)
+  targetActionId: reply
+
+settings:
+  agentSettings:
+    timezone: UTC
+  input:
+    sources: [bot]
+    bot:
+      executionType: stateless

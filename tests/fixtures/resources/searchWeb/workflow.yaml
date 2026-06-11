@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-search-web
+  version: "1.0.0"
+  description: Skill fixture — searchWeb resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17606
+    routes:
+      - path: /api/v1/search
+        methods: [POST]
+  agentSettings:
+    timezone: UTC

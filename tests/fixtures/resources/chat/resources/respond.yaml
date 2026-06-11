@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [llm]
+apiResponse:
+  success: true
+  response:
+    answer: get('llm').message.content

@@ -1,0 +1,12 @@
+apiVersion: kdeps.io/v1
+kind: Agency
+
+metadata:
+  name: skill-test-agency
+  version: "1.0.0"
+  description: Skill fixture — two-agent agency
+  targetAgentId: greeter-agent
+
+agents:
+  - agents/greeter
+  - agents/responder

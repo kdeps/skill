@@ -1,0 +1,6 @@
+actionId: call
+name: Call Echo Component
+component:
+  name: echo
+  with:
+    message: "{{ get('message', 'hello') }}"

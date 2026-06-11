@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [call]
+apiResponse:
+  success: true
+  response:
+    echoed: output('call')

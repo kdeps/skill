@@ -1,0 +1,13 @@
+actionId: search
+name: Web Search
+validations:
+  check:
+    - get('query') != ''
+  error:
+    code: 400
+    message: "query is required"
+searchWeb:
+  query: "{{ get('query') }}"
+  provider: ddg
+  maxResults: 3
+  timeout: 15

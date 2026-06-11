@@ -1,0 +1,10 @@
+actionId: send
+name: Send Email
+email:
+  action: send
+  smtpConnection: default
+  from: "noreply@example.com"
+  to: ["user@example.com"]
+  subject: "Skill test"
+  body: "{{ get('body', 'hello') }}"
+  timeout: 30s

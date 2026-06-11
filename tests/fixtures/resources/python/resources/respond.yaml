@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [run]
+apiResponse:
+  success: true
+  response:
+    result: get('run')

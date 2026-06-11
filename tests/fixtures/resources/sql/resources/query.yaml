@@ -1,0 +1,7 @@
+actionId: query
+name: Query SQLite
+sql:
+  connectionName: main
+  query: "SELECT 1 AS n"
+  format: json
+  timeout: 10s

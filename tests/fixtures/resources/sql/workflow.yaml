@@ -1,0 +1,21 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-sql
+  version: "1.0.0"
+  description: Skill fixture — sql resource (schema validation only)
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17604
+    routes:
+      - path: /api/v1/sql
+        methods: [GET]
+  agentSettings:
+    timezone: UTC
+  sqlConnections:
+    main:
+      driver: sqlite
+      dsn: ":memory:"

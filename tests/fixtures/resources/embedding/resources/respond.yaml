@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [index]
+apiResponse:
+  success: true
+  response:
+    indexed: output('index').success

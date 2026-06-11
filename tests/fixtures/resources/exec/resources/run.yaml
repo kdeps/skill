@@ -1,0 +1,5 @@
+actionId: run
+name: Run Command
+exec:
+  command: "echo '{\"status\":\"ok\"}'"
+  timeout: 10s

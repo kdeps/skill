@@ -1,0 +1,21 @@
+apiVersion: kdeps.io/v1
+kind: Component
+
+metadata:
+  name: echo
+  version: "1.0.0"
+  description: Echo component for skill tests
+  targetActionId: echo
+
+interface:
+  inputs:
+    - name: message
+      type: string
+      required: true
+      description: Text to echo
+
+resources:
+  - actionId: echo
+    name: Echo
+    exec:
+      command: "echo '{{ input('message') }}'"

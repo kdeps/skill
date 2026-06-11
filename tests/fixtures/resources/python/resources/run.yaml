@@ -1,0 +1,7 @@
+actionId: run
+name: Run Python
+python:
+  script: |
+    import json
+    print(json.dumps({"value": 42}))
+  timeout: 30s

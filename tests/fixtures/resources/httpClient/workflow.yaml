@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-http
+  version: "1.0.0"
+  description: Skill fixture — httpClient resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17602
+    routes:
+      - path: /api/v1/fetch
+        methods: [GET]
+  agentSettings:
+    timezone: UTC

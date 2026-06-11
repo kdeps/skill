@@ -40,8 +40,10 @@ Rules of thumb:
   `embedding`, `telephony`, `botReply`, `agent`, or `component`).
   `apiResponse:` is not a primary action -- it may sit on the same resource as
   one, formatting that resource's output into the HTTP response.
-- One resource per file. The loader reads only the first YAML document in a
-  file -- do not put multiple resources in one file separated by `---`.
+- One resource per file under `resources/`, **or** inline in `workflow.yaml`
+  under a top-level `resources:` list (common in agencies). The loader reads
+  only the first YAML document per file -- do not put multiple resources in one
+  file separated by `---`.
 - Every resource requires both `actionId` (unique across the whole workflow,
   including merged component resources) and `name` (human-readable label).
   Use descriptive camelCase or kebab-case IDs.
@@ -163,6 +165,14 @@ curl -X POST http://localhost:16395/api/v1/chat \
 | `apiResponse` | HTTP response | `apiResponse: { success: true, response: { ... } }` |
 | `agent` | target agent's apiResponse | `agent: { name: other-agent, params: { k: v } }` |
 | `component` | component result | `component: { name: scraper, with: { url: "..." } }` |
+| `scraper` | page text (native) | `scraper: { url: "https://..." }` |
+| `searchWeb` | web results | `searchWeb: { query: "...", provider: ddg }` |
+| `searchLocal` | file matches | `searchLocal: { path: "/data", glob: "*.txt" }` |
+| `embedding` | index/search hits | `embedding: { operation: index, text: "..." }` |
+
+Native `scraper`, `searchWeb`, `searchLocal`, and `embedding` require a recent
+kdeps release. For PDF/.docx parsing or vector embeddings, install the registry
+component instead (`kdeps registry install scraper` / `embedding`).
 
 For the full schema of every action (chat sampling params, httpClient
 retry/cache/TLS, sql transactions, email IMAP search, browser actions,
@@ -184,6 +194,44 @@ chat:
     - scraper
     - search
 ```
+
+### Input sources
+
+Workflows accept input from one or more sources via `settings.input.sources`:
+
+| Source | Use case |
+|---|---|
+| `api` (default) | HTTP requests to `apiServer` routes |
+| `bot` | Discord, Slack, Telegram, WhatsApp (`executionType: polling` or `stateless`) |
+| `file` | Read content from stdin or a file path |
+
+Stateless bot (one-shot stdin → stdout):
+
+```yaml
+settings:
+  input:
+    sources: [bot]
+    bot:
+      executionType: stateless
+```
+
+Resources use `botReply:` to send the reply. See `tests/fixtures/resources/botReply/`.
+
+### Built-in input component
+
+kdeps ships a pre-installed `input` component (no `kdeps registry install`). It
+collects named slots (`query`, `prompt`, `text`, `data`, `key`, `value`, `a`–`h`)
+and returns them as JSON:
+
+```yaml
+component:
+  name: input
+  with:
+    query: "{{ get('q') }}"
+    text: "optional context"
+```
+
+See `examples/input-component/` in the kdeps repo.
 
 ## Creating a component
 
@@ -329,6 +377,7 @@ kdeps run my-agency/                       # or my-agency/agency.yaml
 kdeps bundle package my-agency/            # -> my-agency-1.0.0.kagency
 kdeps bundle build my-agency/ --tag my-agency:latest    # Docker image
 kdeps export iso my-agency/                # bootable ISO
+kdeps export k8s my-agency/                # Kubernetes manifests
 kdeps bundle prepackage my-agency-1.0.0.kagency --output dist/   # single binary
 ```
 
@@ -340,6 +389,32 @@ Always validate, then run, in this order:
 kdeps validate workflow.yaml     # exit 2 = validation error
 export KDEPS_API_AUTH_TOKEN=dev-token   # required whenever apiServer is set
 kdeps run <path>
+```
+
+Inline self-tests in `workflow.yaml` or `agency.yaml` (HTTP assertions against
+the live server):
+
+```yaml
+tests:
+  - name: greet returns 200
+    request:
+      method: GET
+      path: /api/v1/greet
+      query:
+        name: test
+    assert:
+      status: 200
+```
+
+```bash
+kdeps run workflow.yaml --self-test-only   # when available: exit 0 = all pass, 1 = failure
+```
+
+Run the skill's fixture suite (requires `kdeps` on PATH):
+
+```bash
+./tests/validate.sh          # schema validation for every resource type
+./tests/validate.sh --run    # adds an exec runtime smoke test
 ```
 
 For agent mode testing: `kdeps serve <path>` (tool name = `metadata.name`).

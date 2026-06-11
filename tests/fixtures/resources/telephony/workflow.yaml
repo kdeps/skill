@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-telephony
+  version: "1.0.0"
+  description: Skill fixture — telephony resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17612
+    routes:
+      - path: /api/v1/voice
+        methods: [POST]
+  agentSettings:
+    timezone: UTC

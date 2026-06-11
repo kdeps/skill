@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-search-local
+  version: "1.0.0"
+  description: Skill fixture — searchLocal resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17607
+    routes:
+      - path: /api/v1/search-local
+        methods: [POST]
+  agentSettings:
+    timezone: UTC

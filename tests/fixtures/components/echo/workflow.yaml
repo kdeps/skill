@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-component
+  version: "1.0.0"
+  description: Skill fixture — component invocation
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17613
+    routes:
+      - path: /api/v1/echo
+        methods: [POST]
+  agentSettings:
+    timezone: UTC

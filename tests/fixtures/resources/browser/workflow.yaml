@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-browser
+  version: "1.0.0"
+  description: Skill fixture — browser resource (schema validation only)
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17610
+    routes:
+      - path: /api/v1/browse
+        methods: [GET]
+  agentSettings:
+    timezone: UTC

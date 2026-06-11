@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-embedding
+  version: "1.0.0"
+  description: Skill fixture — embedding resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17608
+    routes:
+      - path: /api/v1/embedding
+        methods: [POST]
+  agentSettings:
+    timezone: UTC

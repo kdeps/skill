@@ -1,0 +1,32 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: greeter-agent
+  version: "1.0.0"
+  description: Entry-point agent
+  targetActionId: greet
+
+settings:
+  apiServer:
+    portNum: 17615
+    routes:
+      - path: /api/v1/greet
+        methods: [GET, POST]
+  agentSettings:
+    timezone: UTC
+
+resources:
+  - actionId: delegate
+    name: Delegate to Responder
+    agent:
+      name: responder-agent
+      params:
+        name: "{{ get('name', 'World') }}"
+
+  - actionId: greet
+    name: Greet
+    requires: [delegate]
+    apiResponse:
+      success: true
+      response: "{{ output('delegate') }}"

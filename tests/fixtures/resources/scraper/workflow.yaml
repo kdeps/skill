@@ -1,0 +1,17 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-scraper
+  version: "1.0.0"
+  description: Skill fixture — scraper resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17605
+    routes:
+      - path: /api/v1/scrape
+        methods: [POST]
+  agentSettings:
+    timezone: UTC

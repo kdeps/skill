@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [fetch]
+apiResponse:
+  success: true
+  response:
+    content: output('fetch').content

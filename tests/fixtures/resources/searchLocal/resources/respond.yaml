@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [search]
+apiResponse:
+  success: true
+  response:
+    results: output('search').results
