@@ -1,0 +1,6 @@
+actionId: chat
+name: LLM Chat
+chat:
+  model: llama3.2:1b
+  prompt: "{{ get('q', 'hello') }}"
+  timeout: 60s

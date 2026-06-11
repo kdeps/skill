@@ -48,7 +48,8 @@ settings:
 ## webServer (static files / proxy)
 
 Serves static assets or proxies upstream. Shares `rateLimit`, `maxBodyBytes`, and
-`trustedProxies` with `apiServer`.
+`trustedProxies` with `apiServer`. Workflows that only serve static files may set
+`metadata.targetActionId: none`.
 
 ```yaml
 settings:
@@ -56,8 +57,11 @@ settings:
     portNum: 8080
     routes:
       - path: /
-        directory: ./public
+        serverType: static
+        publicPath: ./public
 ```
+
+See `tests/fixtures/workflows/webserver/`.
 
 ## agentSettings (runtime environment)
 

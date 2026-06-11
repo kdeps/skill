@@ -273,7 +273,8 @@ settings:
 
 See `tests/fixtures/workflows/file-input/`,
 `tests/fixtures/workflows/component-input/` (api-only sub-workflow),
-`tests/fixtures/workflows/component-caller/` (parent + local component), and
+`tests/fixtures/workflows/component-caller/` (parent + local component),
+`tests/fixtures/workflows/llm-repl/` (`kdeps serve` / stdin REPL), and
 `tests/fixtures/resources/botReply/`.
 
 ### Built-in input component

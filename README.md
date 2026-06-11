@@ -44,8 +44,8 @@ tests/
 Requires `kdeps` on your PATH:
 
 ```bash
-./tests/validate.sh          # schema validation (19 fixtures)
-./tests/validate.sh --run    # 6 runtime smoke tests (HTTP, bot, file, agency, components)
+./tests/validate.sh          # schema validation (21 fixtures)
+./tests/validate.sh --run    # 7 runtime smoke tests (HTTP, bot, file, agency, components, webserver)
 ```
 
 CI runs `./tests/validate.sh` on every push to `main`.

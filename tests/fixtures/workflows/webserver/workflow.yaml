@@ -1,0 +1,18 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-webserver
+  version: "1.0.0"
+  description: Skill fixture — webServer static file serving
+  targetActionId: none
+
+settings:
+  webServer:
+    portNum: 17617
+    routes:
+      - path: /
+        serverType: static
+        publicPath: ./public
+  agentSettings:
+    timezone: UTC

@@ -117,8 +117,10 @@ validate_path "workflow/inline-resources" "$FIXTURES/workflows/inline-resources"
 validate_path "workflow/file-input" "$FIXTURES/workflows/file-input"
 validate_path "workflow/component-input" "$FIXTURES/workflows/component-input"
 validate_path "workflow/component-caller" "$FIXTURES/workflows/component-caller"
+validate_path "workflow/llm-repl" "$FIXTURES/workflows/llm-repl"
+validate_path "workflow/webserver" "$FIXTURES/workflows/webserver"
 
-# --- Agency ---
+# --- Agency (also exercises agent: resource) ---
 validate_path "agency/simple" "$FIXTURES/agencies/simple"
 
 echo
@@ -155,6 +157,10 @@ if $RUN_TESTS; then
   run_server_smoke "component/echo (HTTP)" \
     "$FIXTURES/components/echo" 17613 \
     'curl -sf -X POST -H "Authorization: Bearer skill-test-token" -H "Content-Type: application/json" -d "{\"message\":\"hi\"}" http://127.0.0.1:17613/api/v1/echo | grep -qi "hi"'
+
+  run_server_smoke "webserver (static)" \
+    "$FIXTURES/workflows/webserver" 17617 \
+    'curl -sf http://127.0.0.1:17617/ | grep -q "webserver fixture"'
 fi
 
 echo
