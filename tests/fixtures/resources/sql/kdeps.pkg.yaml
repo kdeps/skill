@@ -1,0 +1,8 @@
+name: skill-test-sql
+version: 1.0.0
+type: workflow
+description: "Skill fixture — sql resource (schema validation only)"
+license: Apache-2.0
+tags:
+- test
+- workflow

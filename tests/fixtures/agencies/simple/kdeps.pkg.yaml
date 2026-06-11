@@ -1,0 +1,6 @@
+name: skill-test-agency
+version: "1.0.0"
+type: agency
+description: "Skill fixture — two-agent agency for registry packaging tests"
+license: Apache-2.0
+tags: [agency, test]

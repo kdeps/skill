@@ -1,0 +1,8 @@
+name: skill-component-caller
+version: 1.0.0
+type: workflow
+description: Parent workflow that calls a local component
+license: Apache-2.0
+tags:
+- test
+- workflow

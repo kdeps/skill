@@ -5,7 +5,7 @@ description: >
   wants to build a kdeps project, write workflow.yaml, component.yaml, or
   agency.yaml, configure workflow input (api, bot, file), add resources (chat,
   httpClient, sql, python, exec, scraper, searchWeb, botReply, apiResponse),
-  wire multi-agent pipelines, or package/deploy a kdeps app.
+  wire multi-agent pipelines, package/deploy a kdeps app, or publish to kdeps.io.
 ---
 
 # kdeps Skill
@@ -51,11 +51,11 @@ For `apiServer` auth, TLS, rate limits, and session, read
 
 ## What to create
 
-| User wants | Create | Manifest |
+| User wants | Create | Manifests |
 |---|---|---|
-| A reusable capability callable from any workflow (like a function library) | **Component** | `component.yaml` |
-| A single app: API endpoint, pipeline, bot, file processor | **Agent** (workflow) | `workflow.yaml` |
-| Multiple cooperating agents that delegate to each other | **Agency** | `agency.yaml` + one `workflow.yaml` per agent |
+| A reusable capability callable from any workflow (like a function library) | **Component** | `component.yaml` + `kdeps.pkg.yaml` |
+| A single app: API endpoint, pipeline, bot, file processor | **Agent** (workflow) | `workflow.yaml` + `kdeps.pkg.yaml` |
+| Multiple cooperating agents that delegate to each other | **Agency** | `agency.yaml` + `kdeps.pkg.yaml` + one `workflow.yaml` per agent |
 
 Rules of thumb:
 - One endpoint or one job -> agent.
@@ -86,6 +86,9 @@ Rules of thumb:
 - Credentials never go in `workflow.yaml`. SQL DSNs, SMTP/IMAP, HTTP auth, and
   search API keys live in `~/.kdeps/config.yaml`. The API auth token comes from
   `KDEPS_API_AUTH_TOKEN` or `api_auth_token` in `~/.kdeps/config.yaml`.
+- **Every distributable project** needs `kdeps.pkg.yaml` at the package root
+  (`type: workflow | component | agency`). Version must match `metadata.version`.
+  For kdeps.io publishing, read `references/registry.md`.
 - Components cannot contain `settings:` (no servers, no ports). They are pure
   resource bundles.
 - Every `workflow.yaml` requires a `settings:` block. Internal agency agents
@@ -104,10 +107,22 @@ Structure:
 
 ```
 my-agent/
+|-- kdeps.pkg.yaml         # required for kdeps.io distribution
 |-- workflow.yaml
 `-- resources/
     |-- llm.yaml
     `-- response.yaml
+```
+
+`kdeps.pkg.yaml`:
+
+```yaml
+name: my-agent              # must match metadata.name (registry install name)
+version: "1.0.0"            # must match metadata.version
+type: workflow
+description: "What this agent does"
+license: Apache-2.0
+tags: [llm, api]
 ```
 
 `workflow.yaml`:
@@ -182,6 +197,8 @@ curl -X POST http://localhost:16395/api/v1/chat \
   -H "Authorization: Bearer $KDEPS_API_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"q": "hello"}'
+kdeps registry verify .          # before publishing to kdeps.io
+kdeps bundle package .           # -> my-agent-1.0.0.kdeps
 ```
 
 ### Resource action cheat sheet
@@ -297,8 +314,8 @@ See `examples/input-component/` in the kdeps repo.
 
 ## Creating a component
 
-Structure (auto-discovered from `components/` next to a workflow; no
-registration in `workflow.yaml` needed):
+**Local use** — auto-discovered from `components/` next to a workflow; no
+registration in `workflow.yaml` needed:
 
 ```
 my-workflow/
@@ -308,6 +325,27 @@ my-workflow/
         |-- component.yaml
         |-- .env              # optional; auto-loaded lowest-priority env vars
         `-- resources/        # optional; resources may also be inline
+```
+
+**Registry distribution** — the component directory is the package root:
+
+```
+greeter/
+|-- kdeps.pkg.yaml
+|-- component.yaml
+|-- .env              # optional; kdeps registry update scaffolds this
+`-- README.md         # optional; kdeps registry update scaffolds this
+```
+
+`kdeps.pkg.yaml` for a standalone component:
+
+```yaml
+name: greeter
+version: "1.0.0"
+type: component
+description: "A greeting component"
+license: Apache-2.0
+tags: [greeting]
 ```
 
 `component.yaml`:
@@ -369,13 +407,17 @@ component:
 - Env vars resolve as `{COMPONENT_NAME_UPPER}_{VAR}` first, then plain `{VAR}`,
   then the component's `.env` file.
 
-Package and distribute:
+Package and publish:
 
 ```bash
 kdeps bundle package ./components/greeter   # -> greeter-1.0.0.komponent
-kdeps registry install scraper              # install registry components
+kdeps registry verify ./components/greeter  # LLM-agnostic check (no hardcoded secrets)
 kdeps registry update ./components/greeter  # scaffold/merge .env and README.md
+kdeps registry install scraper              # install registry components
 ```
+
+To list on kdeps.io: tag a release, run `kdeps registry submit --tag v1.0.0`,
+open a PR to `github.com/kdeps/registry`. Full steps in `references/registry.md`.
 
 ## Creating an agency
 
@@ -383,6 +425,7 @@ Structure:
 
 ```
 my-agency/
+|-- kdeps.pkg.yaml
 |-- agency.yaml
 `-- agents/
     |-- greeter/
@@ -391,6 +434,17 @@ my-agency/
     `-- responder/
         |-- workflow.yaml
         `-- resources/
+```
+
+`kdeps.pkg.yaml`:
+
+```yaml
+name: my-agency
+version: "1.0.0"
+type: agency
+description: "A multi-agent pipeline"
+license: Apache-2.0
+tags: [agency, multi-agent]
 ```
 
 `agency.yaml`:
@@ -438,10 +492,11 @@ agent:
 The caller reads the target's `apiResponse.response` via `output('delegate')`
 or `get('delegate')`.
 
-Run and package:
+Run, package, and publish:
 
 ```bash
 kdeps run my-agency/                       # or my-agency/agency.yaml
+kdeps registry verify my-agency/             # LLM-agnostic check
 kdeps bundle package my-agency/            # -> my-agency-1.0.0.kagency
 kdeps bundle build my-agency/ --tag my-agency:latest    # Docker image
 kdeps export iso my-agency/                # bootable ISO
@@ -449,15 +504,21 @@ kdeps export k8s my-agency/                # Kubernetes manifests
 kdeps bundle prepackage my-agency-1.0.0.kagency --output dist/   # single binary
 ```
 
+Publish to kdeps.io: `references/registry.md`.
+
 ## Verify before finishing
 
-Always validate, then run, in this order:
+Always validate, verify registry readiness, then run:
 
 ```bash
-kdeps validate workflow.yaml     # exit 2 = validation error
+kdeps validate .                 # exit 2 = validation error; run from package root
+kdeps registry verify .          # exit 1 = hardcoded secrets; WARN = review model names
 export KDEPS_API_AUTH_TOKEN=dev-token   # required whenever apiServer is set
 kdeps run <path>
 ```
+
+Confirm `kdeps.pkg.yaml` exists with the correct `type` and matching `version`.
+For publishing steps, read `references/registry.md`.
 
 Inline self-tests in `workflow.yaml` or `agency.yaml` (HTTP assertions against
 the live server):
@@ -481,9 +542,12 @@ kdeps run workflow.yaml --self-test-only   # when available: exit 0 = all pass, 
 Run the skill's fixture suite (requires `kdeps` on PATH):
 
 ```bash
-./tests/validate.sh          # schema validation for every resource type
+./tests/validate.sh          # validate, kdeps.pkg.yaml presence, registry verify, bundle
 ./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smokes
 ```
+
+Every fixture package root includes `kdeps.pkg.yaml` — workflows, standalone
+components, and agencies are registry-ready by default.
 
 For agent mode testing: `kdeps serve <path>` (tool name = `metadata.name`).
 Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
@@ -513,6 +577,12 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
   refuses to start without it.
 - Using dot-notation prose instead of actual YAML when explaining config to
   the user.
+- Omitting `kdeps.pkg.yaml` on a project meant for distribution (required for
+  `kdeps registry submit` and kdeps.io listing).
+- Putting `kdeps.pkg.yaml` in a parent workflow when publishing a standalone
+  component (belongs next to `component.yaml`).
+- Using `type: agent` in `kdeps.pkg.yaml` (use `type: workflow`).
+- Version mismatch between `kdeps.pkg.yaml` and `metadata.version`.
 
 ## Reference files
 
@@ -522,3 +592,4 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 | `references/expressions.md` | Functions, operators, Jinja2 rules |
 | `references/workflow-input.md` | `settings.input` sources (api, bot, file) |
 | `references/workflow-settings.md` | `apiServer`, auth, TLS, `agentSettings` |
+| `references/registry.md` | `kdeps.pkg.yaml`, verify, bundle, publish to kdeps.io |

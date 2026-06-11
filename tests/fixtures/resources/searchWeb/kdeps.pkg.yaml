@@ -1,0 +1,8 @@
+name: skill-test-search-web
+version: 1.0.0
+type: workflow
+description: "Skill fixture — searchWeb resource"
+license: Apache-2.0
+tags:
+- test
+- workflow

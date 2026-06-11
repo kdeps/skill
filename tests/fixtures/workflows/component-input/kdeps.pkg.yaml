@@ -1,0 +1,8 @@
+name: skill-transformer
+version: 1.0.0
+type: workflow
+description: "Callable sub-workflow — api input, no HTTP server"
+license: Apache-2.0
+tags:
+- test
+- workflow

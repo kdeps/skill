@@ -1,0 +1,8 @@
+name: skill-test-session
+version: 1.0.0
+type: workflow
+description: "Skill fixture — session storage config"
+license: Apache-2.0
+tags:
+- test
+- workflow

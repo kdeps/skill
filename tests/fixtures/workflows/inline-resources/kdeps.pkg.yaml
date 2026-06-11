@@ -1,0 +1,8 @@
+name: skill-test-inline
+version: 1.0.0
+type: workflow
+description: "Skill fixture — inline resources in workflow.yaml"
+license: Apache-2.0
+tags:
+- test
+- workflow

@@ -1,0 +1,8 @@
+name: uppercase
+version: 1.0.0
+type: component
+description: Uppercase a string
+license: Apache-2.0
+tags:
+- test
+- component

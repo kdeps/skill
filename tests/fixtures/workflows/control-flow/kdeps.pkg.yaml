@@ -1,0 +1,8 @@
+name: skill-test-control-flow
+version: 1.0.0
+type: workflow
+description: "Skill fixture — items iteration and before expressions"
+license: Apache-2.0
+tags:
+- test
+- workflow

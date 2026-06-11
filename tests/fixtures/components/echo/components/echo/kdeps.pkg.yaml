@@ -1,0 +1,6 @@
+name: echo
+version: "1.0.0"
+type: component
+description: Echo component for skill tests
+license: Apache-2.0
+tags: [echo, test]

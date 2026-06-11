@@ -43,6 +43,64 @@ validate_path() {
   return 1
 }
 
+verify_registry_path() {
+  local label="$1"
+  local path="$2"
+  printf '%-40s ' "$label"
+  if kdeps registry verify "$path" >/dev/null 2>&1; then
+    echo "OK (registry verify)"
+    PASS=$((PASS + 1))
+    return 0
+  fi
+  echo "FAIL (registry verify)"
+  kdeps registry verify "$path" 2>&1 | grep -E '\[ERROR\]|error:' | head -3
+  FAIL=$((FAIL + 1))
+  return 1
+}
+
+# Agency sub-agents are bundled inside the agency — not separate registry packages.
+is_registry_package_root() {
+  local path="$1"
+  case "$path" in
+    */agencies/*/agents/*) return 1 ;;
+  esac
+  [ -f "$path/workflow.yaml" ] || [ -f "$path/agency.yaml" ] || [ -f "$path/component.yaml" ]
+}
+
+check_pkg_manifest() {
+  local path="$1"
+  local label="$2"
+  printf '%-40s ' "$label"
+  if [ -f "$path/kdeps.pkg.yaml" ]; then
+    echo "OK (kdeps.pkg.yaml)"
+    PASS=$((PASS + 1))
+    return 0
+  fi
+  echo "FAIL (missing kdeps.pkg.yaml)"
+  FAIL=$((FAIL + 1))
+  return 1
+}
+
+bundle_package_path() {
+  local label="$1"
+  local path="$2"
+  printf '%-40s ' "$label"
+  if (
+    cd "$path" &&
+    kdeps bundle package . >/dev/null 2>&1 &&
+    rm -f ./*.kdeps ./*.kagency ./*.komponent docker-compose.yml 2>/dev/null
+  ); then
+    echo "OK (bundle package)"
+    PASS=$((PASS + 1))
+    return 0
+  fi
+  echo "FAIL (bundle package)"
+  (cd "$path" && kdeps bundle package . 2>&1) | grep -E 'error:|Error' | head -3
+  rm -f "$path"/*.kdeps "$path"/*.kagency "$path"/*.komponent "$path"/docker-compose.yml 2>/dev/null
+  FAIL=$((FAIL + 1))
+  return 1
+}
+
 run_smoke() {
   local label="$1"
   local check_cmd="$2"
@@ -124,6 +182,41 @@ validate_path "workflow/control-flow" "$FIXTURES/workflows/control-flow"
 
 # --- Agency (also exercises agent: resource) ---
 validate_path "agency/simple" "$FIXTURES/agencies/simple"
+
+echo
+echo "Registry manifests (every package root needs kdeps.pkg.yaml):"
+while IFS= read -r pkg_root; do
+  rel="${pkg_root#$FIXTURES/}"
+  check_pkg_manifest "$pkg_root" "manifest/$rel"
+done < <(find "$FIXTURES" \( -name workflow.yaml -o -name agency.yaml -o -name component.yaml \) -print \
+  | while IFS= read -r f; do dirname "$f"; done | sort -u | while IFS= read -r d; do
+    if is_registry_package_root "$d"; then echo "$d"; fi
+  done)
+
+echo
+printf '%-40s ' "manifest/alignment"
+if python3 "$ROOT/tests/check_manifests.py" >/dev/null 2>&1; then
+  echo "OK (name, version, type)"
+  PASS=$((PASS + 1))
+else
+  echo "FAIL (alignment)"
+  python3 "$ROOT/tests/check_manifests.py" 2>&1 | head -5
+  FAIL=$((FAIL + 1))
+fi
+
+echo
+echo "Registry verify (all kdeps.pkg.yaml fixtures):"
+while IFS= read -r manifest; do
+  pkg_dir=$(dirname "$manifest")
+  rel="${pkg_dir#$FIXTURES/}"
+  verify_registry_path "registry/$rel" "$pkg_dir"
+done < <(find "$FIXTURES" -name kdeps.pkg.yaml | sort)
+
+echo
+echo "Bundle package (workflow, component, agency):"
+bundle_package_path "bundle/workflow-exec" "$FIXTURES/resources/exec"
+bundle_package_path "bundle/component-echo" "$FIXTURES/components/echo/components/echo"
+bundle_package_path "bundle/agency-simple" "$FIXTURES/agencies/simple"
 
 echo
 if $RUN_TESTS; then

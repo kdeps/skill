@@ -12,8 +12,8 @@ components, agents (workflows), and agencies.
 - Workflow input (`api`, `bot`, `file`), `webServer`, session, and agent mode
   (`kdeps serve`)
 - Components, agencies, expressions, validation, and error handling
-- Running, validating, and packaging (`kdeps run`, `kdeps validate`,
-  `kdeps bundle`)
+- Running, validating, packaging, and publishing (`kdeps run`, `kdeps validate`,
+  `kdeps bundle`, `kdeps registry verify`, `kdeps registry submit`)
 
 ## Install
 
@@ -34,8 +34,10 @@ references/
   expressions.md            # expression functions and operators
   workflow-input.md         # settings.input sources (api, bot, file)
   workflow-settings.md      # apiServer, auth, TLS, agentSettings, session
+  registry.md               # kdeps.pkg.yaml and publishing to kdeps.io
 tests/
   validate.sh               # validate every resource type + component + agency
+  check_manifests.py        # kdeps.pkg.yaml vs metadata alignment
   fixtures/                 # minimal workflows used by the test script
 ```
 
@@ -44,8 +46,8 @@ tests/
 Requires `kdeps` on your PATH:
 
 ```bash
-./tests/validate.sh          # schema validation (23 fixtures)
-./tests/validate.sh --run    # 9 runtime smoke tests
+./tests/validate.sh          # validate + manifests + alignment + registry verify + bundle (77 checks)
+./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smokes
 ```
 
 CI runs `./tests/validate.sh` on every push to `main`.
@@ -62,4 +64,7 @@ CI runs `./tests/validate.sh` on every push to `main`.
 | `workflows/webserver` | Static `webServer` |
 | `workflows/session` | `settings.session` SQLite config |
 | `workflows/control-flow` | `items:` iteration + `before:` expressions |
-| `agencies/simple` | Two-agent agency + `agent:` resource |
+| `agencies/simple` | Two-agent agency + `agent:` resource + `kdeps.pkg.yaml` |
+| `components/echo/.../echo` | Standalone component + `kdeps.pkg.yaml` |
+| `workflows/component-caller/.../uppercase` | Standalone component package |
+| All `resources/*` and `workflows/*` | Each has `kdeps.pkg.yaml` for kdeps.io packaging |

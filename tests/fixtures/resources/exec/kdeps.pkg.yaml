@@ -1,0 +1,8 @@
+name: skill-test-exec
+version: 1.0.0
+type: workflow
+description: "Skill fixture — exec resource"
+license: Apache-2.0
+tags:
+- test
+- workflow
