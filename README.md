@@ -8,10 +8,10 @@ components, agents (workflows), and agencies.
 
 - Choosing between a component, an agent, or an agency
 - Scaffolding `workflow.yaml`, `component.yaml`, and `agency.yaml`
-- Writing resources: `chat`, `httpClient`, `sql`, `python`, `exec`, `email`,
-  `browser`, `scraper`, `searchWeb`, `searchLocal`, `embedding`, `agent`,
-  `component`, `apiResponse`
-- Expressions, validation, iteration, and error handling
+- Writing resources: all 15 primary actions plus `apiResponse`
+- Workflow input (`api`, `bot`, `file`), `webServer`, session, and agent mode
+  (`kdeps serve`)
+- Components, agencies, expressions, validation, and error handling
 - Running, validating, and packaging (`kdeps run`, `kdeps validate`,
   `kdeps bundle`)
 
@@ -44,13 +44,21 @@ tests/
 Requires `kdeps` on your PATH:
 
 ```bash
-./tests/validate.sh          # schema validation (21 fixtures)
-./tests/validate.sh --run    # 7 runtime smoke tests (HTTP, bot, file, agency, components, webserver)
+./tests/validate.sh          # schema validation (22 fixtures)
+./tests/validate.sh --run    # 7 runtime smoke tests
 ```
 
 CI runs `./tests/validate.sh` on every push to `main`.
 
-The script validates one fixture per primary resource action (`chat`,
-`httpClient`, `sql`, `python`, `exec`, `email`, `browser`, `scraper`,
-`searchWeb`, `searchLocal`, `embedding`, `telephony`, `botReply`), plus
-component invocation, inline resources, file input, and a two-agent agency.
+| Fixture | What it tests |
+|---|---|
+| `resources/*` (15) | Each primary resource action |
+| `components/echo` | Local component + HTTP caller |
+| `workflows/inline-resources` | Resources inline in `workflow.yaml` |
+| `workflows/file-input` | `input.sources: [file]` |
+| `workflows/component-input` | Api-only sub-workflow (no server) |
+| `workflows/component-caller` | Parent workflow + `component:` call |
+| `workflows/llm-repl` | `settings.llm` stdin REPL (`kdeps serve`) |
+| `workflows/webserver` | Static `webServer` |
+| `workflows/session` | `settings.session` SQLite config |
+| `agencies/simple` | Two-agent agency + `agent:` resource |

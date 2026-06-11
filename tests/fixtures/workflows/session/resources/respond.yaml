@@ -1,0 +1,9 @@
+actionId: respond
+name: Session Response
+before:
+  - set('visited', get('visited', '0'), 'session')
+  - set('visited', int(get('visited', 'session')) + 1, 'session')
+apiResponse:
+  success: true
+  response:
+    visits: get('visited', 'session')

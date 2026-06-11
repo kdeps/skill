@@ -119,12 +119,15 @@ validate_path "workflow/component-input" "$FIXTURES/workflows/component-input"
 validate_path "workflow/component-caller" "$FIXTURES/workflows/component-caller"
 validate_path "workflow/llm-repl" "$FIXTURES/workflows/llm-repl"
 validate_path "workflow/webserver" "$FIXTURES/workflows/webserver"
+validate_path "workflow/session" "$FIXTURES/workflows/session"
 
 # --- Agency (also exercises agent: resource) ---
 validate_path "agency/simple" "$FIXTURES/agencies/simple"
 
 echo
 if $RUN_TESTS; then
+  pkill -f "kdeps run.*kdeps-skill" 2>/dev/null || true
+  sleep 0.5
   export KDEPS_API_AUTH_TOKEN="skill-test-token"
 
   run_server_smoke "exec (HTTP smoke)" \

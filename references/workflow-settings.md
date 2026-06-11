@@ -95,14 +95,20 @@ settings:
 
 ## session (persistent state)
 
+Omit the block entirely to disable sessions. When present, enables
+`set('key', val, 'session')`, `get('key', 'session')`, and `session()` across
+requests.
+
 ```yaml
 settings:
   session:
-    enabled: true
-    ttl: 3600s
+    type: sqlite              # sqlite (default) or memory
+    path: ":memory:"          # SQLite path; default ~/.kdeps/sessions.db
+    ttl: 30m                  # session expiration
+    cleanupInterval: 5m       # expired session cleanup interval
 ```
 
-Enables `set('key', val, 'session')` and `session()` across requests.
+See `tests/fixtures/workflows/session/`.
 
 ## input and llm
 

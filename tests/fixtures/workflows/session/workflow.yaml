@@ -1,0 +1,22 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-session
+  version: "1.0.0"
+  description: Skill fixture — session storage config
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17618
+    routes:
+      - path: /api/v1/session
+        methods: [GET, POST]
+  agentSettings:
+    timezone: UTC
+  session:
+    type: sqlite
+    path: ":memory:"
+    ttl: 30m
+    cleanupInterval: 5m
