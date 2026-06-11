@@ -20,3 +20,17 @@ jobs:
 
       - name: Validate fixtures
         run: ./tests/validate.sh
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kdeps
+        run: curl -LsSf https://raw.githubusercontent.com/kdeps/kdeps/main/install.sh | sh
+
+      - name: Add kdeps to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Runtime smoke tests
+        run: ./tests/validate.sh --run

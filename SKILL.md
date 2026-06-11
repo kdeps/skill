@@ -10,6 +10,14 @@ description: >
 
 # kdeps Skill
 
+## Install this skill
+
+```bash
+git clone https://github.com/kdeps/skill ~/.claude/skills/kdeps   # Claude Code
+git clone https://github.com/kdeps/skill ~/.cursor/skills/kdeps   # Cursor
+git clone https://github.com/kdeps/skill ~/.grok/skills/kdeps     # Grok
+```
+
 kdeps builds AI apps from YAML. Two modes:
 
 - **Workflow mode** (`kdeps run`): deterministic DAG pipeline. Resources run in

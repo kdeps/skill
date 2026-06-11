@@ -1,8 +1,11 @@
 # kdeps skill
 
+[![Test fixtures](https://github.com/kdeps/skill/actions/workflows/test.yml/badge.svg)](https://github.com/kdeps/skill/actions/workflows/test.yml)
+
 An [agent skill](https://code.claude.com/docs/en/skills) that teaches AI
 coding agents how to create [kdeps](https://github.com/kdeps/kdeps)
-components, agents (workflows), and agencies.
+components, agents (workflows), and agencies — with [kdeps.io](https://kdeps.io)
+registry packaging built in.
 
 ## What it covers
 
@@ -17,13 +20,22 @@ components, agents (workflows), and agencies.
 
 ## Install
 
+Clone into your agent's skills directory (folder name `kdeps`):
+
 ```bash
-# Claude Code: copy into your skills directory
+# Claude Code
 git clone https://github.com/kdeps/skill ~/.claude/skills/kdeps
+
+# Cursor
+git clone https://github.com/kdeps/skill ~/.cursor/skills/kdeps
+
+# Grok
+git clone https://github.com/kdeps/skill ~/.grok/skills/kdeps
 ```
 
-The skill activates automatically when you ask the agent to build something
-with kdeps.
+The skill activates when you ask the agent to build something with kdeps.
+
+Docs: [kdeps.com/getting-started/agent-skills](https://kdeps.com/getting-started/agent-skills)
 
 ## Layout
 
@@ -48,15 +60,15 @@ tests/
 Requires `kdeps` on your PATH:
 
 ```bash
-./tests/validate.sh          # validate + manifests + registry verify + bundle + install (80 checks)
-./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smokes
+./tests/validate.sh          # 81 checks: validate, manifests, registry, bundle, install
+./tests/validate.sh --run    # +9 runtime smokes (90 total, 1 skip on older kdeps)
 ```
 
-CI runs `./tests/validate.sh` on every push to `main`.
+CI runs both on every push to `main`.
 
 | Fixture | What it tests |
 |---|---|
-| `resources/*` (15) | Each primary resource action |
+| `resources/*` (15) | Each primary resource action + `kdeps.pkg.yaml` |
 | `components/echo` | Local component + HTTP caller |
 | `workflows/inline-resources` | Resources inline in `workflow.yaml` |
 | `workflows/file-input` | `input.sources: [file]` |
@@ -66,7 +78,6 @@ CI runs `./tests/validate.sh` on every push to `main`.
 | `workflows/webserver` | Static `webServer` |
 | `workflows/session` | `settings.session` SQLite config |
 | `workflows/control-flow` | `items:` iteration + `before:` expressions |
-| `agencies/simple` | Two-agent agency + `agent:` resource + `kdeps.pkg.yaml` |
-| `components/echo/.../echo` | Standalone component + `kdeps.pkg.yaml` |
+| `agencies/simple` | Two-agent agency + `agent:` resource |
+| `components/echo/.../echo` | Standalone component package |
 | `workflows/component-caller/.../uppercase` | Standalone component package |
-| All `resources/*` and `workflows/*` | Each has `kdeps.pkg.yaml` for kdeps.io packaging |
