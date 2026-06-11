@@ -2,10 +2,9 @@
 
 [![Test fixtures](https://github.com/kdeps/skill/actions/workflows/test.yml/badge.svg)](https://github.com/kdeps/skill/actions/workflows/test.yml)
 
-An [agent skill](https://code.claude.com/docs/en/skills) that teaches AI
-coding agents how to create [kdeps](https://github.com/kdeps/kdeps)
-components, agents (workflows), and agencies — with [kdeps.io](https://kdeps.io)
-registry packaging built in.
+An [agent skill](https://agentskills.io) that teaches AI coding agents how to
+create [kdeps](https://github.com/kdeps/kdeps) components, agents (workflows),
+and agencies — with [kdeps.io](https://kdeps.io) registry packaging built in.
 
 ## What it covers
 
@@ -20,17 +19,20 @@ registry packaging built in.
 
 ## Install
 
-Clone into your agent's skills directory (folder name `kdeps`):
+```bash
+npx skills add https://github.com/kdeps/skill --skill kdeps
+```
+
+Use `-y` to skip prompts and `-g` to install globally (available across all
+projects).
+
+**Alternative** — clone and copy the skill directory:
 
 ```bash
-# Claude Code
-git clone https://github.com/kdeps/skill ~/.claude/skills/kdeps
-
-# Cursor
-git clone https://github.com/kdeps/skill ~/.cursor/skills/kdeps
-
-# Grok
-git clone https://github.com/kdeps/skill ~/.grok/skills/kdeps
+git clone https://github.com/kdeps/skill /tmp/kdeps-skill
+cp -r /tmp/kdeps-skill/skills/kdeps ~/.claude/skills/kdeps   # Claude Code
+cp -r /tmp/kdeps-skill/skills/kdeps ~/.cursor/skills/kdeps   # Cursor
+cp -r /tmp/kdeps-skill/skills/kdeps ~/.grok/skills/kdeps     # Grok
 ```
 
 The skill activates when you ask the agent to build something with kdeps.
@@ -40,17 +42,19 @@ Docs: [kdeps.com/getting-started/agent-skills](https://kdeps.com/getting-started
 ## Layout
 
 ```
-SKILL.md                    # entry point: decision guide + scaffolds
-references/
-  resources.md              # full per-action schemas
-  expressions.md            # expression functions and operators
-  workflow-input.md         # settings.input sources (api, bot, file)
-  workflow-settings.md      # apiServer, auth, TLS, agentSettings, session
-  registry.md               # kdeps.pkg.yaml and publishing to kdeps.io
-scripts/
-  scaffold-pkg.sh           # generate kdeps.pkg.yaml from metadata
-tests/
+skills/kdeps/               # the agent skill (agentskills.io layout)
+  SKILL.md                  # entry point: decision guide + scaffolds
+  references/
+    resources.md            # full per-action schemas
+    expressions.md          # expression functions and operators
+    workflow-input.md       # settings.input sources (api, bot, file)
+    workflow-settings.md    # apiServer, auth, TLS, agentSettings, session
+    registry.md             # kdeps.pkg.yaml and publishing to kdeps.io
+  scripts/
+    scaffold-pkg.sh         # generate kdeps.pkg.yaml from metadata
+tests/                      # CI only — not installed with the skill
   validate.sh               # validate every resource type + component + agency
+  npx-skills-install.sh     # verify npx skills add installs skill files only
   check_manifests.py        # kdeps.pkg.yaml vs metadata alignment
   fixtures/                 # minimal workflows used by the test script
 ```
@@ -62,9 +66,10 @@ Requires `kdeps` on your PATH:
 ```bash
 ./tests/validate.sh          # 81 checks: validate, manifests, registry, bundle, install
 ./tests/validate.sh --run    # +9 runtime smokes (90 total, 1 skip on older kdeps)
+./tests/npx-skills-install.sh
 ```
 
-CI runs both on every push to `main`.
+CI runs all three on every push to `main`.
 
 | Fixture | What it tests |
 |---|---|

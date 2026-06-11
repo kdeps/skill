@@ -1,0 +1,10 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "groupings": [
+    {
+      "title": "kdeps",
+      "description": "Build kdeps workflows, components, and agencies from YAML with registry-ready packaging.",
+      "skills": ["kdeps"]
+    }
+  ]
+}

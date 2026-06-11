@@ -21,6 +21,9 @@ jobs:
       - name: Validate fixtures
         run: ./tests/validate.sh
 
+      - name: Verify npx skills install
+        run: bash ./tests/npx-skills-install.sh
+
   smoke:
     runs-on: ubuntu-latest
     steps:

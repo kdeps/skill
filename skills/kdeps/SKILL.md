@@ -6,6 +6,10 @@ description: >
   agency.yaml, configure workflow input (api, bot, file), add resources (chat,
   httpClient, sql, python, exec, scraper, searchWeb, botReply, apiResponse),
   wire multi-agent pipelines, package/deploy a kdeps app, or publish to kdeps.io.
+license: Apache-2.0
+metadata:
+  author: kdeps
+  version: "1.0.0"
 ---
 
 # kdeps Skill
@@ -13,9 +17,19 @@ description: >
 ## Install this skill
 
 ```bash
-git clone https://github.com/kdeps/skill ~/.claude/skills/kdeps   # Claude Code
-git clone https://github.com/kdeps/skill ~/.cursor/skills/kdeps   # Cursor
-git clone https://github.com/kdeps/skill ~/.grok/skills/kdeps     # Grok
+npx skills add https://github.com/kdeps/skill --skill kdeps
+```
+
+Use `-y` to skip prompts and `-g` to install globally (available across all
+projects).
+
+**Alternative** — clone and copy `skills/kdeps/` into your agent's skills directory:
+
+```bash
+git clone https://github.com/kdeps/skill /tmp/kdeps-skill
+cp -r /tmp/kdeps-skill/skills/kdeps ~/.claude/skills/kdeps   # Claude Code
+cp -r /tmp/kdeps-skill/skills/kdeps ~/.cursor/skills/kdeps   # Cursor
+cp -r /tmp/kdeps-skill/skills/kdeps ~/.grok/skills/kdeps     # Grok
 ```
 
 kdeps builds AI apps from YAML. Two modes:

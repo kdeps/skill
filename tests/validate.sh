@@ -247,7 +247,7 @@ printf '%-40s ' "scaffold-pkg/exec"
 SCAFFOLD_TMP=$(mktemp -d)
 if cp -R "$FIXTURES/resources/exec/." "$SCAFFOLD_TMP/" &&
   rm -f "$SCAFFOLD_TMP/kdeps.pkg.yaml" &&
-  "$ROOT/scripts/scaffold-pkg.sh" "$SCAFFOLD_TMP" >/dev/null 2>&1 &&
+  "$ROOT/skills/kdeps/scripts/scaffold-pkg.sh" "$SCAFFOLD_TMP" >/dev/null 2>&1 &&
   kdeps validate "$SCAFFOLD_TMP" >/dev/null 2>&1 &&
   kdeps registry verify "$SCAFFOLD_TMP" >/dev/null 2>&1; then
   echo "OK (scaffold-pkg)"

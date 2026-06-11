@@ -5,8 +5,8 @@ Every agent (workflow), standalone component, and agency the skill creates must 
 and a publish path via [kdeps.io](https://kdeps.io).
 
 This skill repo itself is **not** a registry package — it is a coding-agent
-skill installed from GitHub. The projects the skill scaffolds **are** registry
-packages.
+skill installed via `npx skills add https://github.com/kdeps/skill --skill kdeps`.
+The projects the skill scaffolds **are** registry packages.
 
 ## Package types
 
@@ -71,7 +71,7 @@ Scaffold from existing metadata (run from the package root):
 ```bash
 scripts/scaffold-pkg.sh .    # in a project the skill created
 # or from this skill repo:
-/path/to/kdeps-skill/scripts/scaffold-pkg.sh ./my-agent
+/path/to/kdeps-skill/skills/kdeps/scripts/scaffold-pkg.sh ./my-agent
 ```
 
 ```yaml
