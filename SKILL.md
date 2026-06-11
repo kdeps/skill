@@ -63,7 +63,8 @@ Rules of thumb:
   output by actionId; `output('actionId')` reads structured output;
   `set('k', v)` stores a value; `input('name')` reads a component input;
   `env('VAR')` reads an environment variable. For all functions, operators,
-  and iteration contexts, read `references/expressions.md`.
+  and iteration contexts, read `references/expressions.md`. For workflow input
+  sources (`api`, `bot`, `file`), read `references/workflow-input.md`.
 
 ## Creating an agent (workflow)
 
@@ -195,27 +196,51 @@ chat:
     - search
 ```
 
-### Input sources
+### Workflow input
 
-Workflows accept input from one or more sources via `settings.input.sources`:
+Declare how the workflow receives data via `settings.input`. Valid sources:
+`api`, `bot`, `file` — combine them when needed. For the full schema (bot
+platform config, file path resolution, combining sources, `settings.llm` REPL),
+read `references/workflow-input.md`.
 
 | Source | Use case |
 |---|---|
-| `api` (default) | HTTP requests to `apiServer` routes |
-| `bot` | Discord, Slack, Telegram, WhatsApp (`executionType: polling` or `stateless`) |
-| `file` | Read content from stdin or a file path |
-
-Stateless bot (one-shot stdin → stdout):
+| `api` | HTTP requests to `apiServer` routes (default when `apiServer` is set) |
+| `bot` | Discord, Slack, Telegram, WhatsApp (`polling` or `stateless`) |
+| `file` | Single-shot: `--file`, stdin, or `KDEPS_FILE_PATH` |
 
 ```yaml
+# File input — runs once and exits
+settings:
+  input:
+    sources: [file]
+    file:
+      path: ""
+# Resources read get('filePath') and get('fileContent')
+```
+
+```yaml
+# Stateless bot — stdin JSON in, stdout reply out
 settings:
   input:
     sources: [bot]
     bot:
       executionType: stateless
+# Use botReply: to send the reply
 ```
 
-Resources use `botReply:` to send the reply. See `tests/fixtures/resources/botReply/`.
+```yaml
+# Component-only sub-workflow (no HTTP server)
+settings:
+  input:
+    sources: [api]
+  agentSettings:
+    pythonVersion: "3.12"
+# Invoked via component: from a parent workflow; inputs via with:
+```
+
+See `tests/fixtures/workflows/file-input/` and
+`tests/fixtures/resources/botReply/`.
 
 ### Built-in input component
 

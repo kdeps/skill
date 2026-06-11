@@ -1,0 +1,16 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-file-input
+  version: "1.0.0"
+  description: Skill fixture — file input source
+  targetActionId: respond
+
+settings:
+  agentSettings:
+    timezone: UTC
+  input:
+    sources: [file]
+    file:
+      path: ""

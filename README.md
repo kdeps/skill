@@ -32,6 +32,7 @@ SKILL.md                    # entry point: decision guide + scaffolds
 references/
   resources.md              # full per-action schemas
   expressions.md            # expression functions and operators
+  workflow-input.md         # settings.input sources (api, bot, file)
 tests/
   validate.sh               # validate every resource type + component + agency
   fixtures/                 # minimal workflows used by the test script
@@ -49,4 +50,4 @@ Requires `kdeps` on your PATH:
 The script validates one fixture per primary resource action (`chat`,
 `httpClient`, `sql`, `python`, `exec`, `email`, `browser`, `scraper`,
 `searchWeb`, `searchLocal`, `embedding`, `telephony`, `botReply`), plus
-component invocation, inline resources, and a two-agent agency.
+component invocation, inline resources, file input, and a two-agent agency.

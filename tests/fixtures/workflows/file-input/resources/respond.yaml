@@ -1,0 +1,7 @@
+actionId: respond
+name: Echo File Input
+apiResponse:
+  success: true
+  response:
+    path: "{{ get('filePath') }}"
+    content: "{{ get('fileContent') }}"

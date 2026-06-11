@@ -112,6 +112,7 @@ validate_path "component/echo" "$FIXTURES/components/echo"
 
 # --- Workflow patterns ---
 validate_path "workflow/inline-resources" "$FIXTURES/workflows/inline-resources"
+validate_path "workflow/file-input" "$FIXTURES/workflows/file-input"
 
 # --- Agency ---
 validate_path "agency/simple" "$FIXTURES/agencies/simple"
@@ -135,6 +136,9 @@ if $RUN_TESTS; then
 
   run_smoke "botReply (stateless)" \
     "printf '%s\n' '{\"message\":\"test\"}' | kdeps run \"$FIXTURES/resources/botReply\" 2>/dev/null | grep -q 'Hello from skill test'"
+
+  run_smoke "file-input (stdin)" \
+    "printf '%s\n' 'skill file content' | kdeps run \"$FIXTURES/workflows/file-input\" >/dev/null 2>&1"
 
   run_server_smoke "agency (inter-agent)" \
     "$FIXTURES/agencies/simple" 17615 \
