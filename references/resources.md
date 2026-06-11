@@ -441,7 +441,9 @@ component:
 ```
 
 Output access: `output('callerActionId')` -- scoped to the caller, so the same
-component can be called from multiple resources independently.
+component can be called from multiple resources independently. When the
+component's last resource is `exec`/`python`, the return value is the runner
+metadata map; parse structured stdout with `json(get('callerId').result).field`.
 
 Inside component resources, read caller-supplied values with
 `get('<componentName>.<input>')` (e.g. `get('scraper.url')`). Prefer this over

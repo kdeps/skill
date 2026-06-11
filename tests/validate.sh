@@ -88,7 +88,9 @@ run_server_smoke() {
   fi
 }
 
+KDEPS_VERSION=$(kdeps --help 2>&1 | head -1 || true)
 echo "kdeps skill fixture validation"
+echo "kdeps: ${KDEPS_VERSION:-$(command -v kdeps)}"
 echo "fixtures: $FIXTURES"
 echo
 
@@ -149,6 +151,10 @@ if $RUN_TESTS; then
   run_server_smoke "component-caller (HTTP)" \
     "$FIXTURES/workflows/component-caller" 17616 \
     'curl -sf -X POST -H "Authorization: Bearer skill-test-token" -H "Content-Type: application/json" -d "{\"text\":\"hello\"}" http://127.0.0.1:17616/api/v1/transform | grep -qi "HELLO"'
+
+  run_server_smoke "component/echo (HTTP)" \
+    "$FIXTURES/components/echo" 17613 \
+    'curl -sf -X POST -H "Authorization: Bearer skill-test-token" -H "Content-Type: application/json" -d "{\"message\":\"hi\"}" http://127.0.0.1:17613/api/v1/echo | grep -qi "hi"'
 fi
 
 echo

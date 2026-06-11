@@ -356,7 +356,9 @@ component:
     recipient: "KDeps"
 ```
 
-- Result is read via `output('main')` (the **caller's** actionId).
+- Result is read via `output('main')` (the **caller's** actionId). For `exec`/
+  `python` components, read structured stdout from `get('main').stdout` or
+  `get('main').result`.
 - Missing required input = error. Unknown key in `with:` = warning, ignored.
   Omitted optional input = default applied.
 - The same component can be called from multiple resources; inputs are scoped
@@ -492,8 +494,12 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 - Omitting `name:` on a resource (both `actionId` and `name` are required).
 - Putting component `name`/`version`/`targetActionId` at the top level of
   `component.yaml` (they belong under `metadata:`).
-- Using `{{ inputs.x }}` inside component resources (the correct form is
-  `{{ input('x') }}`).
+- Using `{{ inputs.x }}` inside component resources (use `get('<component>.<input>')`
+  when called from HTTP workflows; `input('x')` only in component-only sub-workflows).
+- Using Jinja2 `{% for %}` over runtime values like `output('id').results` (use
+  expression helpers or a `python:` resource instead).
+- Using `input('filePath')` for file input source (use `get('filePath')` /
+  `get('fileContent')` — see `references/workflow-input.md`).
 - Omitting `settings:` on an internal agency agent (every workflow needs one).
 - Putting credentials, DSNs, or API keys in `workflow.yaml` (they belong in
   `~/.kdeps/config.yaml`).
@@ -504,3 +510,12 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
   refuses to start without it.
 - Using dot-notation prose instead of actual YAML when explaining config to
   the user.
+
+## Reference files
+
+| File | Contents |
+|---|---|
+| `references/resources.md` | Full schema per resource action |
+| `references/expressions.md` | Functions, operators, Jinja2 rules |
+| `references/workflow-input.md` | `settings.input` sources (api, bot, file) |
+| `references/workflow-settings.md` | `apiServer`, auth, TLS, `agentSettings` |
