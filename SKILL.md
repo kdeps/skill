@@ -275,7 +275,8 @@ See `tests/fixtures/workflows/file-input/`,
 `tests/fixtures/workflows/component-input/` (api-only sub-workflow),
 `tests/fixtures/workflows/component-caller/` (parent + local component),
 `tests/fixtures/workflows/llm-repl/` (`kdeps serve` / stdin REPL),
-`tests/fixtures/workflows/session/` (persistent session storage), and
+`tests/fixtures/workflows/session/` (session storage),
+`tests/fixtures/workflows/control-flow/` (`items:` + `before:`), and
 `tests/fixtures/resources/botReply/`.
 
 ### Built-in input component

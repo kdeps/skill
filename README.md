@@ -44,8 +44,8 @@ tests/
 Requires `kdeps` on your PATH:
 
 ```bash
-./tests/validate.sh          # schema validation (22 fixtures)
-./tests/validate.sh --run    # 7 runtime smoke tests
+./tests/validate.sh          # schema validation (23 fixtures)
+./tests/validate.sh --run    # 9 runtime smoke tests
 ```
 
 CI runs `./tests/validate.sh` on every push to `main`.
@@ -61,4 +61,5 @@ CI runs `./tests/validate.sh` on every push to `main`.
 | `workflows/llm-repl` | `settings.llm` stdin REPL (`kdeps serve`) |
 | `workflows/webserver` | Static `webServer` |
 | `workflows/session` | `settings.session` SQLite config |
+| `workflows/control-flow` | `items:` iteration + `before:` expressions |
 | `agencies/simple` | Two-agent agency + `agent:` resource |

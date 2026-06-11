@@ -120,6 +120,7 @@ validate_path "workflow/component-caller" "$FIXTURES/workflows/component-caller"
 validate_path "workflow/llm-repl" "$FIXTURES/workflows/llm-repl"
 validate_path "workflow/webserver" "$FIXTURES/workflows/webserver"
 validate_path "workflow/session" "$FIXTURES/workflows/session"
+validate_path "workflow/control-flow" "$FIXTURES/workflows/control-flow"
 
 # --- Agency (also exercises agent: resource) ---
 validate_path "agency/simple" "$FIXTURES/agencies/simple"
@@ -164,6 +165,14 @@ if $RUN_TESTS; then
   run_server_smoke "webserver (static)" \
     "$FIXTURES/workflows/webserver" 17617 \
     'curl -sf http://127.0.0.1:17617/ | grep -q "webserver fixture"'
+
+  run_server_smoke "control-flow (items)" \
+    "$FIXTURES/workflows/control-flow" 17619 \
+    'curl -sf -H "Authorization: Bearer skill-test-token" http://127.0.0.1:17619/api/v1/flow | grep -q "itemCount"'
+
+  run_server_smoke "session (HTTP)" \
+    "$FIXTURES/workflows/session" 17618 \
+    'curl -sf -H "Authorization: Bearer skill-test-token" http://127.0.0.1:17618/api/v1/session | grep -q "visits"'
 fi
 
 echo

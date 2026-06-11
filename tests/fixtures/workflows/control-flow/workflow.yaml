@@ -1,0 +1,37 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-control-flow
+  version: "1.0.0"
+  description: Skill fixture — items iteration and before expressions
+  targetActionId: respond
+
+settings:
+  apiServer:
+    portNum: 17619
+    routes:
+      - path: /api/v1/flow
+        methods: [GET]
+  agentSettings:
+    timezone: UTC
+
+resources:
+  - actionId: process
+    name: Process Items
+    items:
+      - alpha
+      - beta
+      - gamma
+    exec:
+      command: 'printf "%s\n" "{{ get(''current'') }}"'
+
+  - actionId: respond
+    name: API Response
+    requires: [process]
+    before:
+      - set('count', len(get('process')))
+    apiResponse:
+      success: true
+      response:
+        itemCount: get('count')
