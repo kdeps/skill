@@ -1,0 +1,8 @@
+name: skill-test-api-web
+version: "1.0.0"
+type: workflow
+description: "Skill fixture — apiServer + webServer in one workflow (public UI, authed API)"
+license: Apache-2.0
+tags:
+- test
+- workflow

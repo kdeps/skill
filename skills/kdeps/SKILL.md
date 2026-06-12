@@ -267,6 +267,35 @@ chat:
     - search
 ```
 
+### Multi-turn chat (conversation history)
+
+Pass runtime history as role-tagged messages via `messages:` (kdeps from
+2026-06-12 or later) — do not splice a transcript string into the prompt:
+
+```yaml
+chat:
+  model: llama3.2:1b
+  messages: "{{ get('history') }}"  # [{role: user, content: ...}, ...] from the request body
+  scenario:
+    - role: system
+      prompt: You are a helpful, concise assistant.
+  prompt: "{{ get('q') }}"
+```
+
+The client sends `{"q": "...", "history": [{"role":"user","content":"..."},
+{"role":"assistant","content":"..."}]}` and replays the transcript each turn.
+
+### Browser UI in front of the API
+
+Add `webServer` next to `apiServer` in the same workflow. Web routes are
+public (no bearer token — browser navigations cannot send one); API routes
+stay authenticated. With a distinct `webServer.portNum` the UI gets its own
+listener; with the same/omitted port both share the API port. CORS preflights
+are answered before auth, so cross-origin `fetch` with `Authorization` also
+works. Requires kdeps from 2026-06-12 or later; details and the proxy
+`headers:` option in `references/workflow-settings.md`. See
+`tests/fixtures/workflows/api-web/`.
+
 ### Workflow input
 
 Declare how the workflow receives data via `settings.input`. Valid sources:
@@ -607,6 +636,17 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
   component (belongs next to `component.yaml`).
 - Using `type: agent` in `kdeps.pkg.yaml` (use `type: workflow`).
 - Version mismatch between `kdeps.pkg.yaml` and `metadata.version`.
+- Splicing a chat transcript string into `prompt:` instead of using
+  `messages:` (loses role structure; invites prompt injection via fake
+  `Assistant:` lines).
+- Reading a request param with `get()` when a persistent memory or session
+  key has the same name — memory/session win over the body. Use a distinct
+  key or `input('name')` for strictly-request data.
+- Targeting an old kdeps for browser-facing features: public web routes,
+  honored `webServer.portNum`, CORS preflights, `messages:`, proxy `headers:`,
+  and 400 validation responses all require a kdeps build from 2026-06-12 or
+  later. Before that, a reverse proxy that injects the bearer token is the
+  only way to put a browser UI in front of a kdeps API.
 
 ## Reference files
 

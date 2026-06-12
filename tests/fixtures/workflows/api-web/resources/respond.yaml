@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [echo]
+apiResponse:
+  success: true
+  response:
+    output: get('echo')

@@ -1,0 +1,44 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-api-web
+  version: "1.0.0"
+  description: Skill fixture — apiServer + webServer in one workflow
+  targetActionId: respond
+
+settings:
+  apiServer:
+    hostIp: "127.0.0.1"
+    portNum: 17620
+    routes:
+      - path: /api/v1/echo
+        methods: [POST]
+  # Same port as the API: web routes merge onto the API listener. Static
+  # assets are public; API routes keep bearer-token auth. A distinct portNum
+  # would start a separate unauthenticated web listener instead.
+  webServer:
+    portNum: 17620
+    routes:
+      - path: /
+        serverType: static
+        publicPath: ./public
+      # app routes reverse-proxy to a local port; headers: values support
+      # {{ env('VAR') }} so upstream credentials stay out of the YAML.
+      - path: /upstream
+        serverType: app
+        appPort: 17621
+        headers:
+          Authorization: "Bearer {{ env('SKILL_TEST_UPSTREAM_TOKEN') }}"
+  agentSettings:
+    timezone: UTC
+
+tests:
+  - name: echo endpoint returns 200
+    request:
+      method: POST
+      path: /api/v1/echo
+      body:
+        text: hello
+    assert:
+      status: 200

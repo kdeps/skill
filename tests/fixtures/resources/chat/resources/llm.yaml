@@ -11,5 +11,8 @@ validations:
 chat:
   model: llama3.2:1b
   role: user
+  # Runtime conversation history: array of {role, content} from the request
+  # body, inserted before the prompt. Empty/absent history adds no messages.
+  messages: "{{ get('history') }}"
   prompt: "{{ get('q') }}"
   timeout: 60s

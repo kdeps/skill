@@ -1,0 +1,13 @@
+actionId: echo
+name: Echo Text
+validations:
+  methods: [POST]
+  routes: [/api/v1/echo]
+  check:
+    - get('text') != ''
+  error:
+    code: 400
+    message: "'text' is required"
+exec:
+  command: "echo 'echo:{{ get('text') }}'"
+  timeout: 10s

@@ -27,11 +27,18 @@ chat:
   frequencyPenalty: 0.0     # -2.0 .. 2.0
   presencePenalty: 0.0      # -2.0 .. 2.0
 
-  scenario:                 # pre-filled conversation history before the prompt
+  scenario:                 # static conversation prefix known at authoring time
     - role: system
       prompt: You are a helpful assistant.
     - role: assistant
       prompt: I am ready to help!
+
+  messages: "{{ get('history') }}"  # RUNTIME conversation history, evaluated per
+                            # request: an array of {role, content} items
+                            # ({role, prompt} also accepted) or a JSON-encoded
+                            # array string. Roles: system, user, assistant.
+                            # Inserted right before the final prompt message.
+                            # Requires kdeps from 2026-06-12 or later.
 
   tools:                    # let the LLM call other resources as functions
     - name: calculate
@@ -63,6 +70,17 @@ Output access: the output is the raw response map -- reply text is at
 `get('id').message.content`. With `jsonResponse: true` the output is the
 parsed JSON object (`get('id').answer`). Raw response also via
 `llm.response('id')`.
+
+Message order sent to the model:
+`[scenario system items, system prompt, messages history, prompt]`.
+Prefer `messages:` over splicing a transcript string into `prompt:` — it
+preserves role structure and avoids prompt injection via fake `Assistant:`
+lines.
+
+Caution: `get('history')` resolves memory and session storage **before** the
+request body, so a persistent memory key named `history` silently shadows the
+request value. Use a distinct name or `input('history')` (strictly request
+data) if you also store conversation state server-side.
 
 ## httpClient
 
@@ -495,8 +513,10 @@ validations:
   check:                    # reject the request when any is false
     - get('q') != ''
   error:
-    code: 400
-    message: "q is required"
+    code: 400               # becomes the HTTP status; message becomes the body:
+    message: "q is required"  # {"error":{"code":"PREFLIGHT_FAILED","message":"q is required"}}
+                            # default status without error: is 400.
+                            # (kdeps before 2026-06-12 returned a generic 500.)
 
 before:                     # expressions before the action
   - set('full_name', get('first') + ' ' + get('last'))

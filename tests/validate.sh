@@ -207,6 +207,7 @@ validate_path "workflow/component-input" "$FIXTURES/workflows/component-input"
 validate_path "workflow/component-caller" "$FIXTURES/workflows/component-caller"
 validate_path "workflow/llm-repl" "$FIXTURES/workflows/llm-repl"
 validate_path "workflow/webserver" "$FIXTURES/workflows/webserver"
+validate_path "workflow/api-web" "$FIXTURES/workflows/api-web"
 validate_path "workflow/session" "$FIXTURES/workflows/session"
 validate_path "workflow/control-flow" "$FIXTURES/workflows/control-flow"
 
@@ -318,6 +319,34 @@ if $RUN_TESTS; then
   run_server_smoke "session (HTTP)" \
     "$FIXTURES/workflows/session" 17618 \
     'curl -sf -H "Authorization: Bearer skill-test-token" http://127.0.0.1:17618/api/v1/session | grep -q "visits"'
+
+  # api-web: public static UI + authed API on one port, and validations.check
+  # surfacing its configured 400. Requires kdeps from 2026-06-12 or later;
+  # older releases put web routes behind auth, so a 401 on "/" means SKIP.
+  printf '%-40s ' "api-web (public UI + authed API)"
+  kdeps run "$FIXTURES/workflows/api-web" --port 17620 >/tmp/kdeps-skill-run.log 2>&1 &
+  apiweb_pid=$!
+  ui_status=000
+  for _ in $(seq 1 30); do
+    ui_status=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:17620/ 2>/dev/null)
+    [ "$ui_status" != "000" ] && break
+    sleep 0.5
+  done
+  if [ "$ui_status" = "401" ]; then
+    echo "SKIP (kdeps too old for public web routes)"
+    SKIP=$((SKIP + 1))
+  elif [ "$ui_status" = "200" ] && curl -s http://127.0.0.1:17620/ | grep -q "api-web fixture" &&
+    [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"text":"hi"}' http://127.0.0.1:17620/api/v1/echo)" = "401" ] &&
+    curl -sf -X POST -H "Authorization: Bearer skill-test-token" -H "Content-Type: application/json" -d '{"text":"hi"}' http://127.0.0.1:17620/api/v1/echo | grep -q "echo:hi" &&
+    [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer skill-test-token' -H 'Content-Type: application/json' -d '{"text":""}' http://127.0.0.1:17620/api/v1/echo)" = "400" ]; then
+    echo "OK (run)"
+    PASS=$((PASS + 1))
+  else
+    echo "FAIL (run)"
+    FAIL=$((FAIL + 1))
+  fi
+  kill "$apiweb_pid" 2>/dev/null || true
+  wait "$apiweb_pid" 2>/dev/null || true
 fi
 
 echo
