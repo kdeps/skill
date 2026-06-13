@@ -4,7 +4,7 @@ description: >
   Create kdeps components, agents (workflows), and agencies. Use when the user
   wants to build a kdeps project, write workflow.yaml, component.yaml, or
   agency.yaml, configure workflow input (api, bot, file), add resources (chat,
-  httpClient, sql, python, exec, scraper, searchWeb, botReply, apiResponse),
+  httpClient, sql, python, exec, scraper, searchWeb, botReply, file, apiResponse),
   wire multi-agent pipelines, package/deploy a kdeps app, or publish to kdeps.io.
 license: Apache-2.0
 metadata:
@@ -90,7 +90,7 @@ Rules of thumb:
   (`Workflow`, `Component`, or `Agency`).
 - A resource has exactly **one primary action** (`chat`, `httpClient`, `sql`,
   `python`, `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
-  `embedding`, `telephony`, `botReply`, `agent`, or `component`).
+  `embedding`, `telephony`, `botReply`, `agent`, `file`, or `component`).
   `apiResponse:` is not a primary action -- it may sit on the same resource as
   one, formatting that resource's output into the HTTP response.
 - One resource per file under `resources/`, **or** inline in `workflow.yaml`
@@ -105,6 +105,12 @@ Rules of thumb:
 - `metadata.targetActionId` names the resource whose output becomes the
   response. It is required in `workflow.yaml`. Point it at the `apiResponse`
   resource.
+- Chat models run on the **file backend (llamafile)** by default:
+  `model: llama3.2:1b` is a registry alias, auto-downloaded to
+  `~/.kdeps/models` (~1.1 GB once) and self-served locally — no LLM server
+  install. `kdeps llamafile list` shows all aliases (quant variants like
+  `llama3.2:1b-q6`, `llama3.2:1b-q8`). Ollama is an explicit opt-in:
+  `installOllama: true` plus `agentSettings.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
 - Credentials never go in `workflow.yaml`. SQL DSNs, SMTP/IMAP, HTTP auth, and
   search API keys live in `~/.kdeps/config.yaml`. The API auth token comes from
   `KDEPS_API_AUTH_TOKEN` or `api_auth_token` in `~/.kdeps/config.yaml`.
@@ -166,14 +172,15 @@ settings:
     routes:
       - path: /api/v1/chat
         methods: [POST]     # GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+        # public: true      # opt out of bearer auth (browser frontends cannot hold a token)
   # Optional runtime environment (affects local run and Docker builds):
   # agentSettings:
   #   pythonVersion: "3.12"
   #   pythonPackages: [pandas]
   #   osPackages: [ffmpeg]
-  #   installOllama: true
+  #   installOllama: true   # opt-in: bake the ollama server into builds (default backend is llamafile)
   #   env:
-  #     SOME_FLAG: "value"
+  #     SOME_FLAG: "value"    # applies to local runs and Docker; process env wins locally
 ```
 
 A resource per file under `resources/`:
@@ -191,7 +198,7 @@ validations:
     code: 400
     message: "'q' is required"
 chat:
-  model: llama3.2:1b
+  model: llama3.2:1b        # llamafile alias - auto-downloaded, no LLM server needed
   role: user
   prompt: "{{ get('q') }}"
   timeout: 60s              # hard stop; returns error, does not retry
@@ -241,6 +248,7 @@ kdeps bundle package .           # -> my-agent-1.0.0.kdeps
 | `searchWeb` | web results | `searchWeb: { query: "...", provider: ddg }` |
 | `searchLocal` | file matches | `searchLocal: { path: "/data", glob: "*.txt" }` |
 | `embedding` | index/search hits | `embedding: { operation: index, text: "..." }` |
+| `file` | result map | `file: { operation: read, path: "/tmp/data" }` |
 
 Native `scraper`, `searchWeb`, `searchLocal`, and `embedding` require a recent
 kdeps release. For PDF/.docx parsing or vector embeddings, install the registry
@@ -553,6 +561,8 @@ kdeps bundle build my-agency/ --tag my-agency:latest    # Docker image
 kdeps export iso my-agency/                # bootable ISO
 kdeps export k8s my-agency/                # Kubernetes manifests
 kdeps bundle prepackage my-agency-1.0.0.kagency --output dist/   # single binary
+kdeps bundle prepackage my-agency-1.0.0.kagency --include-models  # binary + embedded
+                                           # llamafiles: runs fully offline (~1.1 GB/model)
 ```
 
 Publish to kdeps.io: `references/registry.md`.

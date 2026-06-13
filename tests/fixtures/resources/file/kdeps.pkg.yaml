@@ -1,0 +1,8 @@
+name: skill-test-file
+version: 1.0.0
+type: workflow
+description: "Skill fixture — file resource"
+license: Apache-2.0
+tags:
+- test
+- workflow

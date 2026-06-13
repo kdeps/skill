@@ -16,7 +16,10 @@ Sends a prompt to a language model. Output is a string, or a JSON object when
 
 ```yaml
 chat:
-  model: llama3.2:1b        # model name, or "router" to delegate to config routing
+  model: llama3.2:1b        # llamafile alias (default file backend: auto-downloaded,
+                            # self-served locally), a URL/path to a .llamafile,
+                            # or "router" to delegate to config routing.
+                            # kdeps llamafile list shows all aliases (-q4/-q6/-q8 quants)
   role: user                # user, assistant, system
   prompt: "{{ get('q') }}"
 
@@ -199,6 +202,28 @@ Validate user input before interpolating into commands (injection risk):
 `check: [get('input') matches '^[a-zA-Z0-9_-]+$']`.
 
 Output access: `get('id')`, `exec.exitCode('id')`, `exec.stderr('id')`.
+
+## file
+
+Structured filesystem operations -- read, write, patch, list, delete, exists, mkdir, copy, move, append.
+
+```yaml
+file:
+  operation: read                 # required: read | write | patch | list | delete | exists | mkdir | copy | move | append
+  path: "/path/to/file.txt"       # required for most ops
+  source: "/path/to/source"       # required for copy, move
+  content: "hello world"          # required for write, append
+  patch: "@@ -1 +1 @@\n-old\n+new\n"  # required for patch (unified diff)
+  encoding: text                  # text (default) or base64 (read only)
+  pattern: "*.go"                 # glob filter for list
+  recursive: false                # recurse subdirectories for list
+  backup: false                   # create .bak before overwrite
+  dryRun: false                   # preview without modifying
+  mode: "0644"                    # file mode for write/mkdir
+  appendNewline: false            # ensure trailing newline on write/append
+```
+
+All operations return a result map with `success: bool`. Read returns `content`, `size`, `lines`. Write returns `written`, `size`, `backup`, `backupPath`. List returns `entries`, `count`.
 
 ## email
 
@@ -488,7 +513,7 @@ apiResponse:
     X-Total-Count: get('fetchItems').total
   statusCode: 200               # optional HTTP status code
   model: llama3.2:1b            # optional metadata override; if a chat resource
-  backend: ollama               # ran, model/backend are added automatically
+  backend: file                 # ran, model/backend are added automatically
 ```
 
 ## Common cross-cutting fields

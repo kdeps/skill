@@ -1,0 +1,8 @@
+actionId: createFile
+name: Create Test File
+exec:
+  command: |
+    mkdir -p /tmp
+    echo '{"test": "data"}' > /tmp/skill-test-file.json
+    echo '{"wrote": true}'
+  timeout: 10s

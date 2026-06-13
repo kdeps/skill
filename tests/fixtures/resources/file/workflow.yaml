@@ -1,0 +1,26 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-file
+  version: "1.0.0"
+  description: Skill fixture — file resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    hostIp: "127.0.0.1"
+    portNum: 17602
+    routes:
+      - path: /api/v1/file
+        methods: [GET]
+  agentSettings:
+    timezone: UTC
+
+tests:
+  - name: file endpoint returns 200
+    request:
+      method: GET
+      path: /api/v1/file
+    assert:
+      status: 200
