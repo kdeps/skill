@@ -183,7 +183,7 @@ echo "fixtures: $FIXTURES"
 echo
 
 # --- Resources (one workflow per primary action) ---
-for action in exec httpClient python sql scraper searchWeb searchLocal embedding chat browser email telephony botReply file; do
+for action in exec httpClient python sql scraper searchWeb searchLocal embedding chat browser email telephony botReply file git codeIntelligence; do
   case "$action" in
     scraper|searchWeb|searchLocal|embedding)
       if ! $NATIVE_ACTIONS_SUPPORTED; then

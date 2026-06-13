@@ -1,0 +1,19 @@
+actionId: createFile
+name: Create Test Source
+exec:
+  command: |
+    mkdir -p /tmp/skill-test-codeintel
+    cat > /tmp/skill-test-codeintel/main.go << 'GOEOF'
+package main
+
+func parseInput(data string) string {
+	return "parsed: " + data
+}
+
+func main() {
+	result := parseInput("hello")
+	println(result)
+}
+GOEOF
+    echo '{"created": true}'
+  timeout: 10s

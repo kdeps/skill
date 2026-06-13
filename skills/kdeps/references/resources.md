@@ -225,6 +225,44 @@ file:
 
 All operations return a result map with `success: bool`. Read returns `content`, `size`, `lines`. Write returns `written`, `size`, `backup`, `backupPath`. List returns `entries`, `count`.
 
+## git
+
+Version control operations -- status, diff, log, show, branch, remote, add, commit, checkout, init, clone, push, pull.
+
+```yaml
+git:
+  operation: status                 # required: status | diff | log | show | branch | remote | add | commit | checkout | init | clone | push | pull
+  workingDir: "/path/to/repo"       # working directory
+  paths: ["src/main.go"]            # file paths for add/checkout/diff
+  message: "feat: done"            # commit message
+  branch: "feature"                 # branch name for checkout/branch/push/pull
+  url: "https://github.com/..."    # remote URL for clone
+  remote: "origin"                 # remote name (default: origin)
+  args: ["--stat"]                 # additional git arguments
+  maxCount: 10                     # log limit (default: 10)
+  dryRun: false                    # dry-run mode
+```
+
+Read operations (status, diff, log, show, branch, remote) return structured output. Write operations (add, commit, checkout, init, clone, push, pull) support dryRun.
+
+## codeIntelligence
+
+Code navigation operations -- symbol search, definitions, references, document symbols, hover, diagnostics. Uses ripgrep (rg).
+
+```yaml
+codeIntelligence:
+  operation: symbolSearch          # required: symbolSearch | definition | references | documentSymbols | hover | diagnostics
+  path: "/path/to/project"         # file or directory to search
+  query: "parseRequest"            # search pattern (required for symbolSearch)
+  symbol: "parseRequest"           # symbol name (required for definition/references/hover)
+  pattern: "*.go"                  # glob filter
+  language: "go"                   # rg --type value (go, py, js, etc.)
+  context: 2                       # context lines before/after match
+  limit: 20                        # max results
+```
+
+Requires `rg` (ripgrep) to be installed. Diagnostics runs `go vet` for Go files. Returns structured results with file, line, and content.
+
 ## email
 
 SMTP send and IMAP read/search/modify. Credentials live in

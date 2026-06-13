@@ -1,0 +1,26 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-git
+  version: "1.0.0"
+  description: Skill fixture — git resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    hostIp: "127.0.0.1"
+    portNum: 17603
+    routes:
+      - path: /api/v1/git
+        methods: [GET]
+  agentSettings:
+    timezone: UTC
+
+tests:
+  - name: git endpoint returns 200
+    request:
+      method: GET
+      path: /api/v1/git
+    assert:
+      status: 200

@@ -1,0 +1,8 @@
+name: skill-test-codeintel
+version: 1.0.0
+type: workflow
+description: "Skill fixture — codeIntelligence resource"
+license: Apache-2.0
+tags:
+- test
+- workflow

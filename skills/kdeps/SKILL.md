@@ -4,7 +4,8 @@ description: >
   Create kdeps components, agents (workflows), and agencies. Use when the user
   wants to build a kdeps project, write workflow.yaml, component.yaml, or
   agency.yaml, configure workflow input (api, bot, file), add resources (chat,
-  httpClient, sql, python, exec, scraper, searchWeb, botReply, file, apiResponse),
+  httpClient, sql, python, exec, scraper, searchWeb, botReply, file, git,
+  codeIntelligence, apiResponse),
   wire multi-agent pipelines, package/deploy a kdeps app, or publish to kdeps.io.
 license: Apache-2.0
 metadata:
@@ -90,7 +91,8 @@ Rules of thumb:
   (`Workflow`, `Component`, or `Agency`).
 - A resource has exactly **one primary action** (`chat`, `httpClient`, `sql`,
   `python`, `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
-  `embedding`, `telephony`, `botReply`, `agent`, `file`, or `component`).
+  `embedding`, `telephony`, `botReply`, `agent`, `file`, `git`,
+  `codeIntelligence`, or `component`).
   `apiResponse:` is not a primary action -- it may sit on the same resource as
   one, formatting that resource's output into the HTTP response.
 - One resource per file under `resources/`, **or** inline in `workflow.yaml`
@@ -249,6 +251,8 @@ kdeps bundle package .           # -> my-agent-1.0.0.kdeps
 | `searchLocal` | file matches | `searchLocal: { path: "/data", glob: "*.txt" }` |
 | `embedding` | index/search hits | `embedding: { operation: index, text: "..." }` |
 | `file` | result map | `file: { operation: read, path: "/tmp/data" }` |
+| `git` | result map | `git: { operation: status, workingDir: "/repo" }` |
+| `codeIntelligence` | result map | `codeIntelligence: { operation: symbolSearch, query: "parse", path: "." }` |
 
 Native `scraper`, `searchWeb`, `searchLocal`, and `embedding` require a recent
 kdeps release. For PDF/.docx parsing or vector embeddings, install the registry

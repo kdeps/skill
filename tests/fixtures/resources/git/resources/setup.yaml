@@ -1,0 +1,12 @@
+actionId: repoCheck
+name: Check Git Status
+exec:
+  command: |
+    mkdir -p /tmp/skill-test-git-repo
+    cd /tmp/skill-test-git-repo
+    git init 2>/dev/null
+    echo "test" > README.md
+    git add .
+    git commit -m "initial" 2>/dev/null
+    echo '{"repo_ready": true}'
+  timeout: 10s

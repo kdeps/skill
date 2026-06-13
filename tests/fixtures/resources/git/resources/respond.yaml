@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [checkStatus]
+apiResponse:
+  success: true
+  response:
+    output: get('checkStatus')

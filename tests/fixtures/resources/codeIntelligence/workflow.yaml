@@ -1,0 +1,26 @@
+apiVersion: kdeps.io/v1
+kind: Workflow
+
+metadata:
+  name: skill-test-codeintel
+  version: "1.0.0"
+  description: Skill fixture — codeIntelligence resource
+  targetActionId: respond
+
+settings:
+  apiServer:
+    hostIp: "127.0.0.1"
+    portNum: 17604
+    routes:
+      - path: /api/v1/codeintel
+        methods: [GET]
+  agentSettings:
+    timezone: UTC
+
+tests:
+  - name: codeIntelligence endpoint returns 200
+    request:
+      method: GET
+      path: /api/v1/codeintel
+    assert:
+      status: 200

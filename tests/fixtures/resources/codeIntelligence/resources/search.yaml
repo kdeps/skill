@@ -1,0 +1,8 @@
+actionId: searchCode
+name: Search for Symbol
+requires: [createFile]
+codeIntelligence:
+  operation: symbolSearch
+  query: "parseInput"
+  path: /tmp/skill-test-codeintel
+  pattern: "*.go"

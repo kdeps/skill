@@ -1,0 +1,7 @@
+actionId: respond
+name: API Response
+requires: [searchCode]
+apiResponse:
+  success: true
+  response:
+    output: get('searchCode')
