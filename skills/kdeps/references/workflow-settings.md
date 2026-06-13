@@ -14,6 +14,8 @@ settings:
     routes:
       - path: /api/v1/chat
         methods: [POST]       # GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+        public: true          # optional: skip bearer auth for this route (browser
+                              # frontends cannot hold a token); wrong tokens still 401
     cors:
       allowedOrigins: ["*"]   # or allowOrigins: [https://myapp.com]
     rateLimit:
@@ -106,12 +108,31 @@ settings:
     pythonVersion: "3.12"
     pythonPackages: [pandas, requests]
     osPackages: [ffmpeg]
-    installOllama: true
+    installOllama: true   # opt-in: bake the ollama server into Docker/ISO builds
     env:
       MY_FLAG: "value"
 ```
 
 Affects local `kdeps run` and Docker builds. Python packages install via `uv`.
+`env:` applies on local runs too (an already-set process variable wins), and
+becomes `ENV` directives in Docker images.
+
+### LLM backend default
+
+Chat resources run on the **file backend (llamafile)** unless configured
+otherwise: model aliases like `llama3.2:1b` resolve to Mozilla llamafiles,
+auto-downloaded to `~/.kdeps/models` and self-served locally. No ollama or
+other server is installed in images by default; the referenced llamafiles are
+pre-baked instead. To use ollama, set `installOllama: true` and pin the
+runtime backend:
+
+```yaml
+settings:
+  agentSettings:
+    installOllama: true
+    env:
+      KDEPS_DEFAULT_BACKEND: ollama
+```
 
 ## sqlConnections (pool config)
 
