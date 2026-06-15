@@ -38,27 +38,36 @@ kdeps builds AI apps from YAML. Two modes:
 - **Workflow mode** (`kdeps run`): deterministic DAG pipeline. Resources run in
   dependency order; one resource's output feeds the next; an `apiResponse`
   resource returns the HTTP response.
-- **Agent mode** (`kdeps serve`): interactive LLM loop. Whole workflows,
+- **Agent mode** (`kdeps [path]`): interactive LLM REPL. Whole workflows,
   agencies, and components register as callable tools; the LLM routes between
-  them.
+  them. Multi-turn conversation memory, session persistence, skills.
 
-### Agent mode (`kdeps serve`)
+### Agent mode (`kdeps [path]`)
 
 Each workflow becomes one LLM tool named after `metadata.name`. The model reads
-from stdin, picks tools, and synthesizes a final answer. Individual resources
-are never exposed — only whole workflows, agencies, and installed components.
+from stdin in a REPL, picks tools, and synthesizes a final answer. Individual
+resources are never exposed -- only whole workflows, agencies, and installed
+components.
 
 ```bash
-kdeps serve ./my-agent/                              # one workflow = one tool
-kdeps serve ./agents/                                # every workflow in folder
-kdeps serve ./my-agency/ --model llama3.2 \
+kdeps                                                # model-only REPL, no tools
+kdeps ./my-agent/                                    # one workflow = one tool
+kdeps ./agents/                                      # every workflow in folder
+kdeps ./my-agency/ --model llama3.2 \
   --system "You are a DevOps assistant."
+kdeps --skill ~/.kdeps/skills/                       # load skill files
+kdeps --resume <session-id>                          # continue a saved session
 ```
 
 ```bash
 KDEPS_AGENT_MODEL=claude-3-5-sonnet
 KDEPS_AGENT_BACKEND=anthropic
 ```
+
+REPL slash commands: `/help`, `/clear`, `/model <name>`, `/skills`,
+`/<skill-name> [prompt]`, `/compact`, `/history`, `/exit`.
+
+Sessions are saved as JSONL under `~/.kdeps/sessions/` and resumed with `--resume`.
 
 Opt-in component tools inside a `chat:` resource:
 
@@ -109,10 +118,17 @@ Rules of thumb:
   resource.
 - Chat models run on the **file backend (llamafile)** by default:
   `model: llama3.2:1b` is a registry alias, auto-downloaded to
-  `~/.kdeps/models` (~1.1 GB once) and self-served locally — no LLM server
+  `~/.kdeps/models` (~1.1 GB once) and self-served locally - no LLM server
   install. `kdeps llamafile list` shows all aliases (quant variants like
-  `llama3.2:1b-q6`, `llama3.2:1b-q8`). Ollama is an explicit opt-in:
-  `installOllama: true` plus `agentSettings.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
+  `llama3.2:1b-q6`, `llama3.2:1b-q8`). The **gguf backend** serves GGUF files
+  via `llama-server` (llama.cpp): `backend: gguf`, aliases include `qwen3.5-4b`,
+  `llama3.2-3b`, `phi4-mini`, `gemma3-4b`, `mistral-7b`, `deepseek-r1-7b`.
+  Ollama is an explicit opt-in: `installOllama: true` plus
+  `agentSettings.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
+  Cloud backends: `openai`, `anthropic`, `google`, `mistral`, `groq`, `together`,
+  `perplexity`, `cohere`, `deepseek`, `xai` (Grok), `openrouter` (100+ models).
+  All configured in `~/.kdeps/config.yaml` under `llm.backend` and the matching
+  `*_api_key` field.
 - Credentials never go in `workflow.yaml`. SQL DSNs, SMTP/IMAP, HTTP auth, and
   search API keys live in `~/.kdeps/config.yaml`. The API auth token comes from
   `KDEPS_API_AUTH_TOKEN` or `api_auth_token` in `~/.kdeps/config.yaml`.

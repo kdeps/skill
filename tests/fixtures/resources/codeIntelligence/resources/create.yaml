@@ -3,17 +3,6 @@ name: Create Test Source
 exec:
   command: |
     mkdir -p /tmp/skill-test-codeintel
-    cat > /tmp/skill-test-codeintel/main.go << 'GOEOF'
-package main
-
-func parseInput(data string) string {
-	return "parsed: " + data
-}
-
-func main() {
-	result := parseInput("hello")
-	println(result)
-}
-GOEOF
+    printf 'package main\n\nfunc parseInput(data string) string {\n\treturn "parsed: " + data\n}\n\nfunc main() {\n\tresult := parseInput("hello")\n\tprintln(result)\n}\n' > /tmp/skill-test-codeintel/main.go
     echo '{"created": true}'
   timeout: 10s
