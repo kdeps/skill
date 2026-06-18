@@ -10,7 +10,7 @@ and agencies — with [kdeps.io](https://kdeps.io) registry packaging built in.
 
 - Choosing between a component, an agent, or an agency
 - Scaffolding `workflow.yaml`, `component.yaml`, and `agency.yaml`
-- Writing resources: all 18 primary actions plus `apiResponse`
+- Writing resources: all 22 primary actions plus `apiResponse`
 - Workflow input (`api`, `bot`, `file`), `webServer`, session, and agent mode
   (`kdeps serve`)
 - Components, agencies, expressions, validation, and error handling

@@ -363,22 +363,20 @@ Output: `output('id').results` (array of `{path, name, size, isDir}`),
 
 ## embedding (native)
 
-SQLite-backed keyword store (LIKE matching, not vector similarity) for
-on-prem RAG. For OpenAI vector embeddings, install the registry component
-(`kdeps registry install embedding`).
+Vector embeddings for RAG pipelines. Supports OpenAI (`text-embedding-3-small`), Google (`text-embedding-004`), HuggingFace (`BAAI/bge-small-en-v1.5`), Jina, VoyageAI, Bedrock (Titan/Cohere), Ollama, and Cybertron (local CPU). The `embedding:` resource generates embeddings from text inputs for use with `vectorStore:`.
 
 ```yaml
 embedding:
-  operation: "index"               # index, search, upsert, delete
-  text: "document content"         # required for index/search/upsert;
-                                   # omit on delete to clear the whole collection
-  collection: "default"            # namespace
-  dbPath: "kdeps-embedding.db"     # SQLite file path
-  limit: 10                        # max search results
+  operation: "vectorize"           # vectorize (batch documents), embed_query (single)
+  model: "text-embedding-3-small"  # model name
+  backend: "openai"                # google, huggingface, jina, voyageai, bedrock, ollama, cybertron
+  inputs:                          # text inputs to embed (vectorize operation)
+    - "first document"
+    - "second document"
+  text: "single query"             # single text to embed (embed_query operation)
 ```
 
-Output: `.operation`, `.collection`, `.success`, `.results` (search),
-`.count` (search), `.affected` (delete), `.json`.
+Output: `.model`, `.vectors` or `.vector` (JSON-encoded float arrays), `.count`.
 
 ## browser
 
@@ -613,3 +611,48 @@ Timeout defaults can be set globally via env vars: `KDEPS_CHAT_TIMEOUT`,
 `KDEPS_HTTP_TIMEOUT`, `KDEPS_PYTHON_TIMEOUT`, `KDEPS_EXEC_TIMEOUT`,
 `KDEPS_SQL_TIMEOUT`, and `KDEPS_ON_ERROR_ACTION` / `KDEPS_ON_ERROR_MAX_RETRIES`
 / `KDEPS_ON_ERROR_RETRY_DELAY` for error handling.
+## vectorStore (native)
+
+Vector database for RAG pipelines. Add documents with embeddings and search by similarity. Supports Qdrant, Chroma, Pinecone, Weaviate, OpenSearch, pgvector, MongoDB, Redis, Azure AI Search, MariaDB, Dolt, and Bedrock Knowledge Bases.
+
+```yaml
+vectorStore:
+  provider: "qdrant"               # chroma, pinecone, weaviate, opensearch, pgvector,
+                                   #   mongodb, redis, azureaisearch, mariadb, dolt, bedrock
+  operation: "add_documents"       # add_documents, similarity_search
+  collection: "my-collection"      # collection/index/table name (bedrock: knowledgeBaseId)
+  embedModel: "text-embedding-3-small"
+  embedBackend: "openai"           # google, huggingface, jina, voyageai, bedrock, ollama, cybertron
+  query: "search text"             # similarity_search only
+  topK: 5
+  documents:                       # add_documents only
+    - content: "document text"
+      metadata:
+        source: "file.txt"
+```
+
+## loader (native)
+
+Document loading for RAG pipelines. Loads PDF, HTML, CSV, text files, and directories.
+
+```yaml
+loader:
+  type: "pdf"                      # pdf, html, csv, text, directory, notion
+  source: "/path/to/document.pdf"  # file path or directory
+  chunkSize: 1000                  # split into chunks (0 = no split)
+  chunkOverlap: 100                # overlap between chunks
+  chunkSplitter: "recursive"       # recursive, token, markdown
+```
+
+## transcribe (native)
+
+Speech-to-text via OpenAI Whisper. Supports OpenAI, Groq, and local backends.
+
+```yaml
+transcribe:
+  file: "audio.mp3"                # audio file path
+  model: "whisper-1"               # model name
+  backend: "openai"                # openai, groq, local
+  language: "en"                   # optional language hint
+  responseFormat: "json"           # json, text, srt, verbose_json, vtt
+```
