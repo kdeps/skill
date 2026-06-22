@@ -394,7 +394,7 @@ settings:
 See `tests/fixtures/workflows/file-input/`,
 `tests/fixtures/workflows/component-input/` (api-only sub-workflow),
 `tests/fixtures/workflows/component-caller/` (parent + local component),
-`tests/fixtures/workflows/llm-repl/` (`kdeps serve` / stdin REPL),
+`tests/fixtures/workflows/llm-repl/` (`kdeps [path]` / stdin REPL),
 `tests/fixtures/workflows/session/` (session storage),
 `tests/fixtures/workflows/control-flow/` (`items:` + `before:`), and
 `tests/fixtures/resources/botReply/`.
@@ -656,7 +656,7 @@ Run the skill's fixture suite (requires `kdeps` on PATH):
 Every fixture package root includes `kdeps.pkg.yaml` — workflows, standalone
 components, and agencies are registry-ready by default.
 
-For agent mode testing: `kdeps serve <path>` (tool name = `metadata.name`).
+For agent mode testing: `kdeps <path>` (tool name = `metadata.name`).
 Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 
 ## Common mistakes to avoid

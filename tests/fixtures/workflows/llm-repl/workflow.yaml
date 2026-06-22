@@ -4,7 +4,7 @@ kind: Workflow
 metadata:
   name: skill-test-llm-repl
   version: "1.0.0"
-  description: Skill fixture — settings.llm stdin REPL (kdeps serve / --interactive)
+  description: Skill fixture — settings.llm stdin REPL (kdeps [path] / --interactive)
   targetActionId: chat
 
 settings:

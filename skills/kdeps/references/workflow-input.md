@@ -153,7 +153,7 @@ point.
 ## LLM stdin REPL (`settings.llm`)
 
 Separate from `settings.input` — configures interactive agent-mode REPL when
-using `kdeps serve` or `kdeps run --interactive`:
+using `kdeps [path]` or `kdeps run --interactive`:
 
 ```yaml
 settings:

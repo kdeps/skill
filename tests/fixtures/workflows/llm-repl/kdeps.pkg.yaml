@@ -1,7 +1,7 @@
 name: skill-test-llm-repl
 version: 1.0.0
 type: workflow
-description: "Skill fixture — settings.llm stdin REPL (kdeps serve / --interactive)"
+description: "Skill fixture — settings.llm stdin REPL (kdeps [path] / --interactive)"
 license: Apache-2.0
 tags:
 - test

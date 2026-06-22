@@ -168,7 +168,7 @@ See `tests/fixtures/workflows/session/`.
 ## input and llm
 
 See `references/workflow-input.md` for `settings.input` (api, bot, file) and
-`settings.llm` (stdin REPL for `kdeps serve` / `kdeps run --interactive`).
+`settings.llm` (stdin REPL for `kdeps [path]` / `kdeps run --interactive`).
 
 ## Per-agent config overrides
 

@@ -12,7 +12,7 @@ and agencies — with [kdeps.io](https://kdeps.io) registry packaging built in.
 - Scaffolding `workflow.yaml`, `component.yaml`, and `agency.yaml`
 - Writing resources: all 22 primary actions plus `apiResponse`
 - Workflow input (`api`, `bot`, `file`), `webServer`, session, and agent mode
-  (`kdeps serve`)
+  (`kdeps [path]`)
 - Components, agencies, expressions, validation, and error handling
 - Running, validating, packaging, and publishing (`kdeps run`, `kdeps validate`,
   `kdeps bundle`, `kdeps registry verify`, `kdeps registry submit`)
@@ -79,7 +79,7 @@ CI runs all three on every push to `main`.
 | `workflows/file-input` | `input.sources: [file]` |
 | `workflows/component-input` | Api-only sub-workflow (no server) |
 | `workflows/component-caller` | Parent workflow + `component:` call |
-| `workflows/llm-repl` | `settings.llm` stdin REPL (`kdeps serve`) |
+| `workflows/llm-repl` | `settings.llm` stdin REPL (`kdeps [path]`) |
 | `workflows/webserver` | Static `webServer` |
 | `workflows/session` | `settings.session` SQLite config |
 | `workflows/control-flow` | `items:` iteration + `before:` expressions |
