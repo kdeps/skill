@@ -67,6 +67,44 @@ chat:
 
   timeout: 60s              # hard stop; returns error, does not retry
   streaming: true           # Ollama only; kdeps accumulates chunks before returning
+
+  # Chain-of-thought and few-shot
+  chainOfThought: true      # inject a CoT reasoning prefix into the system prompt
+  fewShotEmbeddingModel: text-embedding-3-small  # embedding model for semantic few-shot selection
+  fewShotEmbeddingBackend: openai                # backend for fewShotEmbeddingModel
+
+  # Sampling controls (may not be supported by all backends)
+  candidateCount: 1         # number of candidate completions to generate
+  n: 1                      # alias for candidateCount (OpenAI style)
+  minLength: 10             # minimum response length in tokens
+  maxLength: 512            # maximum response length (alias for maxTokens)
+
+  # Anthropic-specific
+  promptCaching: true       # enable server-side prompt caching (beta header)
+  anthropicExtendedOutput: true  # enable 128K output tokens
+  anthropicBetaHeaders:     # custom Anthropic beta feature headers
+    - "interleaved-thinking-2025-05-14"
+
+  # Per-message cache control (Anthropic only)
+  scenario:
+    - role: system
+      prompt: "You are a helpful assistant."
+      cacheControl: ephemeral  # mark this message for server-side caching
+
+  # Google AI / Vertex AI
+  googleCachedContent: cachedContents/abc123  # name of a Google AI CachedContent resource
+  googleHarmThreshold: 2    # safety filter: 0=unspecified 1=block-none 2=block-few 3=block-some 4=block-most
+  googleCloudProject: my-gcp-project   # Vertex AI project ID
+  googleCloudLocation: us-central1     # Vertex AI region
+
+  # OpenAI compatibility
+  openAILegacyMaxTokens: true  # use max_tokens instead of max_completion_tokens (older servers)
+
+  # Ollama native options (activates native path instead of OpenAI-compat path)
+  ollamaThink: true         # enable extended thinking (Ollama 0.9.0+, e.g. deepseek-r1)
+  ollamaKeepAlive: 5m       # keep model loaded: "5m", "-1" (indefinite), "0" (unload)
+  ollamaPullModel: true     # auto-pull model if not present
+  ollamaPullTimeout: 10m    # timeout for model pull
 ```
 
 Output access: the output is the raw response map -- reply text is at

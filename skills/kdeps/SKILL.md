@@ -77,6 +77,30 @@ chat:
   componentTools: [scraper, search]
 ```
 
+Built-in agent tools (always available, no config needed):
+
+| Tool | Requires env var | What it does |
+|---|---|---|
+| `web_search` (DuckDuckGo) | - | Web search via DuckDuckGo |
+| `wikipedia` | - | Wikipedia article lookup |
+| `web_scraper` | - | Fetch and clean a URL |
+| `calculator` | - | Evaluate a math expression |
+| `bash_exec` | - | Run a shell command (30s timeout) |
+| `read_file` | - | Read a local file (up to 1 MB) |
+| `write_file` | - | Write a local file |
+| `edit_file` | - | Replace text in a local file |
+| `list_files` | - | List files in a directory |
+| `sql_query` | - | Query a SQLite database |
+| `serpapi_search` | `SERPAPI_API_KEY` | Google Search via SerpAPI |
+| `perplexity_search` | `PERPLEXITY_API_KEY` | Search via Perplexity AI |
+| `wolfram_alpha` | `WOLFRAM_APP_ID` | Wolfram Alpha computation |
+| `cohere_rerank` | `COHERE_API_KEY` | Semantic reranking (Cohere) |
+| `voyageai_rerank` | `VOYAGE_API_KEY` | Semantic reranking (VoyageAI) |
+| `jina_rerank` | `JINA_API_KEY` | Semantic reranking (Jina) |
+| `google_cache_create` | `GOOGLE_API_KEY` | Create a Google AI CachedContent resource |
+| `google_cache_delete` | `GOOGLE_API_KEY` | Delete a Google AI CachedContent by name |
+| `google_cache_list` | `GOOGLE_API_KEY` | List all Google AI CachedContent names |
+
 For `settings.llm` stdin REPL config, read `references/workflow-input.md`.
 For `apiServer` auth, TLS, rate limits, and session, read
 `references/workflow-settings.md`.
