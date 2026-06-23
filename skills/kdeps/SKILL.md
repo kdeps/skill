@@ -64,8 +64,35 @@ KDEPS_AGENT_MODEL=claude-3-5-sonnet
 KDEPS_AGENT_BACKEND=anthropic
 ```
 
-REPL slash commands: `/help`, `/clear`, `/model <name>`, `/skills`,
-`/<skill-name> [prompt]`, `/compact`, `/history`, `/exit`.
+REPL slash commands:
+
+| Command | Description |
+|---------|-------------|
+| `/help` | Show all commands |
+| `/clear` | Summarize and clear conversation |
+| `/model [name]` | Show or switch LLM model (TUI picker when no arg) |
+| `/model default [name]` | Show or persist startup model to `~/.kdeps/agent-loop-settings.yaml` |
+| `/models` | List all available models with provider status |
+| `/processes` | List running local model servers (llamafile/gguf) with PID, port, health |
+| `/processes kill <model>` | Kill a running local model server |
+| `/processes switch <model>` | Switch to an already-running local server |
+| `/hff search <query>` | Search HuggingFace for GGUF repos (sorted by downloads) |
+| `/hff info <repo>` | List GGUF files and sizes in a HuggingFace repo |
+| `/hff download <repo> [file]` | Download a GGUF from HuggingFace, register alias, suggest `/model` |
+| `/skills` | List loaded skills |
+| `/<skill-name> [prompt]` | Invoke a skill or prompt template |
+| `/compact` | Summarize history to free context |
+| `/history` | Show conversation history |
+| `/thinking [off\|low\|medium\|high\|auto]` | Set extended reasoning mode |
+| `/session list\|save\|load\|delete\|checkpoint\|goto` | Manage saved sessions |
+| `/settings` | Open tool/skill selector |
+| `/reload` | Reload skills and prompt templates from disk |
+| `/exit` | Exit the REPL |
+| `! <cmd>` | Run a shell command; result added to LLM context |
+| `!! <cmd>` | Run a shell command without adding to context |
+
+After `/model <local-gguf>`, the REPL blocks with a progress indicator until the
+server is fully ready - no network errors on the first prompt.
 
 Sessions are saved as JSONL under `~/.kdeps/sessions/` and resumed with `--resume`.
 
@@ -147,6 +174,9 @@ Rules of thumb:
   `llama3.2:1b-q6`, `llama3.2:1b-q8`). The **gguf backend** serves GGUF files
   via `llama-server` (llama.cpp): `backend: gguf`, aliases include `qwen3.5-4b`,
   `llama3.2-3b`, `phi4-mini`, `gemma3-4b`, `mistral-7b`, `deepseek-r1-7b`.
+  Discover and download any GGUF from HuggingFace directly in the REPL:
+  `/hff search llama3` -> `/hff info <repo>` -> `/hff download <repo> <file>` ->
+  `/model <alias>`. Uses `HF_TOKEN` env var for gated models.
   Ollama is an explicit opt-in: `installOllama: true` plus
   `agentSettings.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
   Cloud backends: `openai`, `anthropic`, `google`, `mistral`, `groq`, `together`,
