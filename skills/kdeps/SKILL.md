@@ -104,29 +104,49 @@ chat:
   componentTools: [scraper, search]
 ```
 
-Built-in agent tools (always available, no config needed):
+Built-in agent tools (always available unless an env var is listed):
 
 | Tool | Requires env var | What it does |
 |---|---|---|
 | `web_search` (DuckDuckGo) | - | Web search via DuckDuckGo |
 | `wikipedia` | - | Wikipedia article lookup |
-| `web_scraper` | - | Fetch and clean a URL |
-| `calculator` | - | Evaluate a math expression |
-| `bash_exec` | - | Run a shell command (30s timeout) |
-| `read_file` | - | Read a local file (up to 1 MB) |
-| `write_file` | - | Write a local file |
-| `edit_file` | - | Replace text in a local file |
-| `list_files` | - | List files in a directory |
-| `sql_query` | - | Query a SQLite database |
+| `web_scraper` | - | Fetch and clean readable text from a URL |
+| `http_request` | - | Call any HTTP API (GET/POST/PUT/DELETE/PATCH) |
+| `calculator` | - | Evaluate a math expression (Starlark) |
+| `bash_exec` | - | Run a shell command. Ctrl+C interrupts (partial output returned to the model); Ctrl+Z backgrounds it as a job |
+| `bash_job_list` | - | List background jobs started via Ctrl+Z |
+| `bash_job_wait` | - | Wait for a background job and return its full output |
+| `read_file` / `write_file` / `edit_file` / `list_files` | - | Local filesystem: read, write, targeted string edit, list |
+| `search_local` | - | ripgrep search across local files (path + query, optional glob) |
+| `code_search` / `code_definition` / `code_references` / `code_symbols` / `code_hover` / `code_diagnostics` | - | LSP-powered code intelligence |
+| `sql_query` / `sql_list_tables` / `sql_describe_table` | - | Query and introspect a SQLite DB (`KDEPS_SQL_DB_PATH`) |
+| `load_document` | - | Load PDF/DOCX/EPUB/HTML/CSV/etc. as text; optional chunking for RAG |
+| `retrieve_context` | - | Retrieve relevant chunks from the configured RAG index |
+| `memory_save` / `memory_search` / `memory_delete` / `memory_list` | - | Persistent cross-session memory, auto-injected into every call |
+| `task_*` / `team_*` | - | Multi-turn task and team orchestration (create, assign, complete, ...) |
+| `cron_*` | - | Schedule recurring tasks (create, list, pause, resume, delete) |
+| `approval_*` | - | Request/grant/list/revoke one-time permission exceptions |
 | `serpapi_search` | `SERPAPI_API_KEY` | Google Search via SerpAPI |
-| `perplexity_search` | `PERPLEXITY_API_KEY` | Search via Perplexity AI |
-| `wolfram_alpha` | `WOLFRAM_APP_ID` | Wolfram Alpha computation |
+| `perplexity_search` | `PERPLEXITY_API_KEY` | Cited, up-to-date web answers via Perplexity |
+| `exa_search` | `EXA_API_KEY` | Neural web search via Exa (`METAPHOR_API_KEY` also accepted) |
+| `wolfram_alpha` | `WOLFRAM_APP_ID` | Wolfram Alpha computation and facts |
+| `transcribe_audio` | `OPENAI_API_KEY` / `GROQ_API_KEY` | Whisper transcription (or `local` backend, no key) |
 | `cohere_rerank` | `COHERE_API_KEY` | Semantic reranking (Cohere) |
-| `voyageai_rerank` | `VOYAGE_API_KEY` | Semantic reranking (VoyageAI) |
+| `voyageai_rerank` | `VOYAGEAI_API_KEY` | Semantic reranking (VoyageAI) |
 | `jina_rerank` | `JINA_API_KEY` | Semantic reranking (Jina) |
-| `google_cache_create` | `GOOGLE_API_KEY` | Create a Google AI CachedContent resource |
-| `google_cache_delete` | `GOOGLE_API_KEY` | Delete a Google AI CachedContent by name |
-| `google_cache_list` | `GOOGLE_API_KEY` | List all Google AI CachedContent names |
+| `google_cache_create` / `google_cache_delete` / `google_cache_list` | `GOOGLE_API_KEY` | Manage Google AI server-side context caches |
+| `zapier_list_actions` / `zapier_run_action` | `ZAPIER_NLA_API_KEY` | Discover and run Zapier NLA actions |
+
+`bash_exec` has no fixed timeout; it runs until completion, Ctrl+C, or Ctrl+Z.
+When [rtk](https://github.com/rtk-ai/rtk) is on `PATH`, bash commands are
+auto-rewritten through it to cut output tokens (e.g. `git status` runs as
+`rtk git status`); set `KDEPS_RTK=off` to disable. `KDEPS_ALLOW_BASH=false`
+removes all three `bash_*` tools; `KDEPS_BASH_MODE=read-only` blocks mutating
+commands.
+
+`KDEPS_LEAN_MODE=true` strips external-surface tools (bash, web, search, rerank,
+http, zapier) for CI/automation, keeping file, code, sql, memory, and
+orchestration tools.
 
 For `settings.llm` stdin REPL config, read `references/workflow-input.md`.
 For `apiServer` auth, TLS, rate limits, and session, read
