@@ -121,11 +121,12 @@ Built-in agent tools (always available unless an env var is listed):
 | `code_search` / `code_definition` / `code_references` / `code_symbols` / `code_hover` / `code_diagnostics` | - | LSP-powered code intelligence |
 | `sql_query` / `sql_list_tables` / `sql_describe_table` | - | Query and introspect a SQLite DB (`KDEPS_SQL_DB_PATH`) |
 | `load_document` | - | Load PDF/DOCX/EPUB/HTML/CSV/etc. as text; optional chunking for RAG |
-| `retrieve_context` | - | Retrieve relevant chunks from the configured RAG index |
+| `embedding_vectorize` / `embedding_search` | - | Index text into the local embedding DB and semantic-search it |
 | `memory_save` / `memory_search` / `memory_delete` / `memory_list` | - | Persistent cross-session memory, auto-injected into every call |
 | `task_*` / `team_*` | - | Multi-turn task and team orchestration (create, assign, complete, ...) |
 | `cron_*` | - | Schedule recurring tasks (create, list, pause, resume, delete) |
 | `approval_*` | - | Request/grant/list/revoke one-time permission exceptions |
+| `retrieve_context` | `KDEPS_RAG_BASE_URL` | Retrieve chunks from a remote RAG endpoint (only registered when the URL is set) |
 | `serpapi_search` | `SERPAPI_API_KEY` | Google Search via SerpAPI |
 | `perplexity_search` | `PERPLEXITY_API_KEY` | Cited, up-to-date web answers via Perplexity |
 | `exa_search` | `EXA_API_KEY` | Neural web search via Exa (`METAPHOR_API_KEY` also accepted) |
