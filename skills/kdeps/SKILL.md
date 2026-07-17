@@ -172,7 +172,7 @@ Rules of thumb:
 - A resource has exactly **one primary action** (`chat`, `httpClient`, `sql`,
   `python`, `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
   `embedding`, `telephony`, `botReply`, `agent`, `file`, `git`,
-  `codeIntelligence`, or `component`).
+  `codeIntelligence`, `loader`, `vectorStore`, `transcribe`, or `component`).
   `apiResponse:` is not a primary action -- it may sit on the same resource as
   one, formatting that resource's output into the HTTP response.
 - One resource per file under `resources/`, **or** inline in `workflow.yaml`

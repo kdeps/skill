@@ -17,7 +17,9 @@ settings:
         public: true          # optional: skip bearer auth for this route (browser
                               # frontends cannot hold a token); wrong tokens still 401
     cors:
-      allowedOrigins: ["*"]   # or allowOrigins: [https://myapp.com]
+      allowOrigins: ["*"]     # e.g. [https://myapp.com]; other keys:
+                              # allowMethods, allowHeaders, exposeHeaders,
+                              # allowCredentials, maxAge
     rateLimit:
       requestsPerMinute: 60
       burst: 10
