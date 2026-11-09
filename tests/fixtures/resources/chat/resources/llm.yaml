@@ -1,6 +1,6 @@
 actionId: llm
 name: LLM Chat
-validations:
+guardrails:
   methods: [POST]
   routes: [/api/v1/chat]
   check:
@@ -9,10 +9,12 @@ validations:
     code: 400
     message: "'q' is required"
 chat:
-  model: llama3.2:1b
-  role: user
-  # Runtime conversation history: array of {role, content} from the request
-  # body, inserted before the prompt. Empty/absent history adds no messages.
-  messages: "{{ get('history') }}"
-  prompt: "{{ get('q') }}"
-  timeout: 60s
+  model:
+    name: llama3.2:1b
+    timeout: 60s
+  context:
+    role: user
+    # Runtime conversation history: array of {role, content} from the request
+    # body, inserted before the prompt. Empty/absent history adds no messages.
+    messages: "{{ get('history') }}"
+    prompt: "{{ get('q') }}"

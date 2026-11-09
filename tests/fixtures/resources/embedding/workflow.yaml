@@ -7,11 +7,11 @@ metadata:
   description: Skill fixture — embedding resource
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17608
     routes:
       - path: /api/v1/embedding
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC

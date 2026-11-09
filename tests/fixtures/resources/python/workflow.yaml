@@ -7,12 +7,12 @@ metadata:
   description: Skill fixture — python resource
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17603
     routes:
       - path: /api/v1/py
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
     pythonVersion: "3.12"

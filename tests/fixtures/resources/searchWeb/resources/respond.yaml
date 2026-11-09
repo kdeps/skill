@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [search]
+workflow:
+  requires: [search]
 apiResponse:
   success: true
   response:

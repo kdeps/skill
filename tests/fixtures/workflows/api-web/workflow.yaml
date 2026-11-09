@@ -7,7 +7,7 @@ metadata:
   description: Skill fixture — apiServer + webServer in one workflow
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"
     portNum: 17620
@@ -30,10 +30,10 @@ settings:
         appPort: 17621
         headers:
           Authorization: "Bearer {{ env('SKILL_TEST_UPSTREAM_TOKEN') }}"
-  agentSettings:
+  runtime:
     timezone: UTC
 
-tests:
+evals:
   - name: echo endpoint returns 200
     request:
       method: POST

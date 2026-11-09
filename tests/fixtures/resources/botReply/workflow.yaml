@@ -7,8 +7,8 @@ metadata:
   description: Skill fixture — botReply resource (stateless bot)
   targetActionId: reply
 
-settings:
-  agentSettings:
+deploy:
+  runtime:
     timezone: UTC
   input:
     sources: [bot]

@@ -1,6 +1,7 @@
 actionId: checkStatus
 name: Check Status
-requires: [repoCheck]
+workflow:
+  requires: [repoCheck]
 git:
   operation: status
   workingDir: /tmp/skill-test-git-repo

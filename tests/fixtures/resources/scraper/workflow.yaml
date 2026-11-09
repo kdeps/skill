@@ -7,11 +7,11 @@ metadata:
   description: Skill fixture — scraper resource
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17605
     routes:
       - path: /api/v1/scrape
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC

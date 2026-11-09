@@ -7,8 +7,8 @@ metadata:
   description: Skill fixture — file input source
   targetActionId: respond
 
-settings:
-  agentSettings:
+deploy:
+  runtime:
     timezone: UTC
   input:
     sources: [file]

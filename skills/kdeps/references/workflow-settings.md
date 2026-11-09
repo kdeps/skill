@@ -7,7 +7,7 @@ agents may use a minimal one).
 ## apiServer (HTTP API)
 
 ```yaml
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"      # bind address; 0.0.0.0 for all interfaces
     portNum: 16395
@@ -48,7 +48,7 @@ preflight, which blocks all cross-origin browser requests.)
 TLS (optional — omit for plain HTTP):
 
 ```yaml
-settings:
+deploy:
   certFile: /path/to/cert.pem
   keyFile: /path/to/key.pem
   apiServer:
@@ -62,7 +62,7 @@ Serves static assets or proxies upstream apps. Shares `rateLimit`,
 serve static files may set `metadata.targetActionId: none`.
 
 ```yaml
-settings:
+deploy:
   webServer:
     portNum: 8080
     routes:
@@ -104,8 +104,8 @@ See `tests/fixtures/workflows/webserver/` (static only) and
 ## agentSettings (runtime environment)
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     timezone: UTC
     pythonVersion: "3.12"
     pythonPackages: [pandas, requests]
@@ -129,8 +129,8 @@ pre-baked instead. To use ollama, set `installOllama: true` and pin the
 runtime backend:
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     installOllama: true
     env:
       KDEPS_DEFAULT_BACKEND: ollama
@@ -142,7 +142,7 @@ DSN credentials go in `~/.kdeps/config.yaml` under `sql_connections:`. Pool
 settings live in the workflow:
 
 ```yaml
-settings:
+deploy:
   sqlConnections:
     main:
       driver: postgres
@@ -157,12 +157,11 @@ Omit the block entirely to disable sessions. When present, enables
 requests.
 
 ```yaml
-settings:
-  session:
-    type: sqlite              # sqlite (default) or memory
-    path: ":memory:"          # SQLite path; default ~/.kdeps/sessions.db
-    ttl: 30m                  # session expiration
-    cleanupInterval: 5m       # expired session cleanup interval
+memory:
+  type: sqlite              # sqlite (default) or memory
+  path: ":memory:"          # SQLite path; default ~/.kdeps/sessions.db
+  ttl: 30m                  # session expiration
+  cleanupInterval: 5m       # expired session cleanup interval
 ```
 
 See `tests/fixtures/workflows/session/`.

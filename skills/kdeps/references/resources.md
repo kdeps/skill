@@ -5,7 +5,7 @@ action; `apiResponse:` may additionally sit on the same resource to format its
 output into the HTTP response. One resource per file (only the first YAML
 document in a file is loaded). All actions work in both workflow mode and
 agent mode. Common cross-cutting fields (`actionId`, `requires`,
-`validations`, `before`, `after`, `items`, `loop`, `onError`) are at the end
+`guardrails`, `before`, `after`, `items`, `loop`, `onError`) are at the end
 of this file.
 
 ## chat (LLM)
@@ -16,95 +16,101 @@ Sends a prompt to a language model. Output is a string, or a JSON object when
 
 ```yaml
 chat:
-  model: llama3.2:1b        # llamafile alias (default file backend: auto-downloaded,
-                            # self-served locally), a URL/path to a .llamafile,
-                            # or "router" to delegate to config routing.
-                            # kdeps llamafile list shows all aliases (-q4/-q6/-q8 quants)
-  role: user                # user, assistant, system
-  prompt: "{{ get('q') }}"
+  model:
+    name: llama3.2:1b        # llamafile alias (default file backend: auto-downloaded,
+                              # self-served locally), a URL/path to a .llamafile,
+                              # or "router" to delegate to config routing.
+                              # kdeps llamafile list shows all aliases (-q4/-q6/-q8 quants)
+    temperature: 0.7          # 0.0 deterministic .. 2.0 very random
+    maxTokens: 1000           # hard cap on generated tokens; 0 = model default
+    topP: 0.9                 # nucleus sampling threshold
+    frequencyPenalty: 0.0     # -2.0 .. 2.0
+    presencePenalty: 0.0      # -2.0 .. 2.0
 
-  contextLength: 8192       # 4096, 8192, 16384, 32768, 65536, 131072, 262144
-  temperature: 0.7          # 0.0 deterministic .. 2.0 very random
-  maxTokens: 1000           # hard cap on generated tokens; 0 = model default
-  topP: 0.9                 # nucleus sampling threshold
-  frequencyPenalty: 0.0     # -2.0 .. 2.0
-  presencePenalty: 0.0      # -2.0 .. 2.0
+    timeout: 60s              # hard stop; returns error, does not retry
+    streaming: true           # Ollama only; kdeps accumulates chunks before returning
 
-  scenario:                 # static conversation prefix known at authoring time
-    - role: system
-      prompt: You are a helpful assistant.
-    - role: assistant
-      prompt: I am ready to help!
+    # Sampling controls (may not be supported by all backends)
+    candidateCount: 1         # number of candidate completions to generate
+    n: 1                      # alias for candidateCount (OpenAI style)
+    minLength: 10             # minimum response length in tokens
+    maxLength: 512            # maximum response length (alias for maxTokens)
 
-  messages: "{{ get('history') }}"  # RUNTIME conversation history, evaluated per
-                            # request: an array of {role, content} items
-                            # ({role, prompt} also accepted) or a JSON-encoded
-                            # array string. Roles: system, user, assistant.
-                            # Inserted right before the final prompt message.
-                            # Requires kdeps from 2026-06-12 or later.
+    # Anthropic-specific
+    promptCaching: true       # enable server-side prompt caching (beta header)
+    anthropicExtendedOutput: true  # enable 128K output tokens
+    anthropicBetaHeaders:     # custom Anthropic beta feature headers
+      - "interleaved-thinking-2025-05-14"
 
-  tools:                    # let the LLM call other resources as functions
-    - name: calculate
-      description: Perform math
-      script: calcResource  # actionId of the resource to invoke
-      parameters:
-        expression:
-          type: string      # string, integer, number, boolean
-          description: Math expression
-          required: true
+    # Google AI / Vertex AI
+    googleCachedContent: cachedContents/abc123  # name of a Google AI CachedContent resource
+    googleHarmThreshold: 2    # safety filter: 0=unspecified 1=block-none 2=block-few 3=block-some 4=block-most
+    googleCloudProject: my-gcp-project   # Vertex AI project ID
+    googleCloudLocation: us-central1     # Vertex AI region
 
-  componentTools:           # opt-in allowlist: installed components as tools;
-    - scraper               # explicit tools: entries take precedence
-    - search
+    # OpenAI compatibility
+    openAILegacyMaxTokens: true  # use max_tokens instead of max_completion_tokens (older servers)
 
-  files:                    # attachments for vision-capable models
-    - "{{ get('file', 'filepath') }}"
+    # Ollama native options (activates native path instead of OpenAI-compat path)
+    ollamaThink: true         # enable extended thinking (Ollama 0.9.0+, e.g. deepseek-r1)
+    ollamaKeepAlive: 5m       # keep model loaded: "5m", "-1" (indefinite), "0" (unload)
+    ollamaPullModel: true     # auto-pull model if not present
+    ollamaPullTimeout: 10m    # timeout for model pull
+  context:
+    role: user                # user, assistant, system
+    prompt: "{{ get('q') }}"
 
-  jsonResponse: true        # ask the model for valid JSON
-  jsonResponseKeys:         # keys to extract from the JSON response
-    - answer
-    - confidence
+    contextLength: 8192       # 4096, 8192, 16384, 32768, 65536, 131072, 262144
+    scenario:                 # static conversation prefix known at authoring time
+      - role: system
+        prompt: You are a helpful assistant.
+      - role: assistant
+        prompt: I am ready to help!
 
-  timeout: 60s              # hard stop; returns error, does not retry
-  streaming: true           # Ollama only; kdeps accumulates chunks before returning
+    messages: "{{ get('history') }}"  # RUNTIME conversation history, evaluated per
+                              # request: an array of {role, content} items
+                              # ({role, prompt} also accepted) or a JSON-encoded
+                              # array string. Roles: system, user, assistant.
+                              # Inserted right before the final prompt message.
+                              # Requires kdeps from 2026-06-12 or later.
 
-  # Chain-of-thought and few-shot
-  chainOfThought: true      # inject a CoT reasoning prefix into the system prompt
-  fewShotEmbeddingModel: text-embedding-3-small  # embedding model for semantic few-shot selection
-  fewShotEmbeddingBackend: openai                # backend for fewShotEmbeddingModel
+    files:                    # attachments for vision-capable models
+      - "{{ get('file', 'filepath') }}"
 
-  # Sampling controls (may not be supported by all backends)
-  candidateCount: 1         # number of candidate completions to generate
-  n: 1                      # alias for candidateCount (OpenAI style)
-  minLength: 10             # minimum response length in tokens
-  maxLength: 512            # maximum response length (alias for maxTokens)
+    fewShot:
+      embeddingModel: text-embedding-3-small  # embedding model for semantic few-shot selection
+      embeddingBackend: openai                # backend for fewShotEmbeddingModel
 
-  # Anthropic-specific
-  promptCaching: true       # enable server-side prompt caching (beta header)
-  anthropicExtendedOutput: true  # enable 128K output tokens
-  anthropicBetaHeaders:     # custom Anthropic beta feature headers
-    - "interleaved-thinking-2025-05-14"
+    # Per-message cache control (Anthropic only)
+    scenario:
+      - role: system
+        prompt: "You are a helpful assistant."
+        cacheControl: ephemeral  # mark this message for server-side caching
 
-  # Per-message cache control (Anthropic only)
-  scenario:
-    - role: system
-      prompt: "You are a helpful assistant."
-      cacheControl: ephemeral  # mark this message for server-side caching
+  harness:
+    output:
+      json: true        # ask the model for valid JSON
+      keys:         # keys to extract from the JSON response
+        - answer
+        - confidence
 
-  # Google AI / Vertex AI
-  googleCachedContent: cachedContents/abc123  # name of a Google AI CachedContent resource
-  googleHarmThreshold: 2    # safety filter: 0=unspecified 1=block-none 2=block-few 3=block-some 4=block-most
-  googleCloudProject: my-gcp-project   # Vertex AI project ID
-  googleCloudLocation: us-central1     # Vertex AI region
+    # Chain-of-thought and few-shot
+    chainOfThought: true      # inject a CoT reasoning prefix into the system prompt
+  tools:
+    list:                    # let the LLM call other resources as functions
+      - name: calculate
+        description: Perform math
+        script: calcResource  # actionId of the resource to invoke
+        parameters:
+          expression:
+            type: string      # string, integer, number, boolean
+            description: Math expression
+            required: true
 
-  # OpenAI compatibility
-  openAILegacyMaxTokens: true  # use max_tokens instead of max_completion_tokens (older servers)
+    components:           # opt-in allowlist: installed components as tools;
+      - scraper               # explicit tools: entries take precedence
+      - search
 
-  # Ollama native options (activates native path instead of OpenAI-compat path)
-  ollamaThink: true         # enable extended thinking (Ollama 0.9.0+, e.g. deepseek-r1)
-  ollamaKeepAlive: 5m       # keep model loaded: "5m", "-1" (indefinite), "0" (unload)
-  ollamaPullModel: true     # auto-pull model if not present
-  ollamaPullTimeout: 10m    # timeout for model pull
 ```
 
 Output access: the output is the raw response map -- reply text is at
@@ -480,7 +486,7 @@ telephony:
   timeout: 5s             # no-input timeout
   interDigitTimeout: 2s
   # menu -- matches map input to result.status: match + result.interpretation;
-  # branch with downstream resources via validations.skip
+  # branch with downstream resources via guardrails.skip
   matches:
     - keys: ["1"]         # DTMF digits or speech phrases
     - keys: ["2"]
@@ -600,9 +606,31 @@ name: My Resource           # required; human-readable label
 description: What it does   # optional
 category: api               # optional grouping
 
-requires: [otherResource]   # direct dependencies only; transitive are resolved
+workflow:
+  requires: [otherResource]   # direct dependencies only; transitive are resolved
 
-validations:
+  items:                      # run once per item; get('current'), get('prev'),
+    - "First"                 # get('next'), get('index'), get('count')
+    - "Second"
+
+  loop:                       # while-loop; loop.index(), loop.count(), loop.results()
+    while: "loop.index() < 5"
+    maxIterations: 1000       # safety cap (default 1000)
+    every: "1s"               # optional delay; mutually exclusive with at
+    at: ["09:00"]             # optional schedule (RFC3339, HH:MM, YYYY-MM-DD)
+
+  onError:
+    action: continue          # continue (use fallback), retry, fail (default)
+    maxRetries: 3             # retry only
+    retryDelay: "1s"          # retry only
+    fallback:                 # continue only: what get('id') returns on failure
+      status: "error"
+    expr:                     # run when an error is caught
+      - set('errorMessage', error.message)
+    when:                     # apply onError only if one is true; else propagate
+      - error.type == 'TIMEOUT'
+      - error.message contains 'connection refused'
+guardrails:
   methods: [POST]           # gate by request method
   routes: [/api/v1/x]       # gate by route
   headers: [Authorization]  # gate by header presence
@@ -622,27 +650,6 @@ before:                     # expressions before the action
 after:                      # expressions after the action
   - set('summary', get('myResource'))
 
-items:                      # run once per item; get('current'), get('prev'),
-  - "First"                 # get('next'), get('index'), get('count')
-  - "Second"
-
-loop:                       # while-loop; loop.index(), loop.count(), loop.results()
-  while: "loop.index() < 5"
-  maxIterations: 1000       # safety cap (default 1000)
-  every: "1s"               # optional delay; mutually exclusive with at
-  at: ["09:00"]             # optional schedule (RFC3339, HH:MM, YYYY-MM-DD)
-
-onError:
-  action: continue          # continue (use fallback), retry, fail (default)
-  maxRetries: 3             # retry only
-  retryDelay: "1s"          # retry only
-  fallback:                 # continue only: what get('id') returns on failure
-    status: "error"
-  expr:                     # run when an error is caught
-    - set('errorMessage', error.message)
-  when:                     # apply onError only if one is true; else propagate
-    - error.type == 'TIMEOUT'
-    - error.message contains 'connection refused'
 ```
 
 Timeout defaults can be set globally via env vars: `KDEPS_CHAT_TIMEOUT`,

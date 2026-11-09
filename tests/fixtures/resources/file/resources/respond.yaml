@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [readFile]
+workflow:
+  requires: [readFile]
 apiResponse:
   success: true
   response:

@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [checkStatus]
+workflow:
+  requires: [checkStatus]
 apiResponse:
   success: true
   response:

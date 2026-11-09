@@ -20,7 +20,7 @@ Default for workflows with `settings.apiServer`. Request params, headers, JSON
 body, and uploads are read via `get('key')`, `input('key')`, or `file('*.pdf')`.
 
 ```yaml
-settings:
+deploy:
   apiServer:
     portNum: 16395
     routes:
@@ -32,8 +32,8 @@ settings:
 Callable sub-workflow (no HTTP server — driven by parent `component:` calls):
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     pythonVersion: "3.12"
   input:
     sources: [api]
@@ -53,7 +53,7 @@ polling intervals, guild filters, and webhook ports.
 **Polling** (long-running listener):
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [bot]
     bot:
@@ -71,7 +71,7 @@ settings:
 **Stateless** (one-shot stdin JSON → stdout reply):
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [bot]
     bot:
@@ -96,7 +96,7 @@ Single-shot execution. Content is loaded from, in order:
 4. `settings.input.file.path` default
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [file]
     file:
@@ -132,7 +132,7 @@ KDEPS_FILE_PATH=./doc.txt kdeps run workflow.yaml
 ## Combining sources
 
 ```yaml
-settings:
+deploy:
   apiServer:
     portNum: 16395
     routes:
@@ -147,7 +147,7 @@ settings:
 ```
 
 Each source activates its own runner. Resources gate themselves with
-`validations.routes` / `validations.methods` when they only apply to one entry
+`guardrails.routes` / `guardrails.methods` when they only apply to one entry
 point.
 
 ## LLM stdin REPL (`settings.llm`)
@@ -156,13 +156,13 @@ Separate from `settings.input` — configures interactive agent-mode REPL when
 using `kdeps [path]` or `kdeps run --interactive`:
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [api]
-  llm:
-    executionType: stdin       # stdin (default REPL) or apiServer
-    prompt: "You: "
-    sessionId: llm-chat-session
+agent:
+  executionType: stdin       # stdin (default REPL) or apiServer
+  prompt: "You: "
+  sessionId: llm-chat-session
 ```
 
 ## Reading input in resources

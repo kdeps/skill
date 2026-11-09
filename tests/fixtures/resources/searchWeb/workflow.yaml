@@ -7,11 +7,11 @@ metadata:
   description: Skill fixture — searchWeb resource
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17606
     routes:
       - path: /api/v1/search
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC

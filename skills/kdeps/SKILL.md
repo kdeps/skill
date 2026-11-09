@@ -100,8 +100,10 @@ Opt-in component tools inside a `chat:` resource:
 
 ```yaml
 chat:
-  prompt: "Research {{ get('q') }}"
-  componentTools: [scraper, search]
+  context:
+    prompt: "Research {{ get('q') }}"
+  tools:
+    components: [scraper, search]
 ```
 
 Built-in agent tools (always available unless an env var is listed):
@@ -199,7 +201,7 @@ Rules of thumb:
   `/hff search llama3` -> `/hff info <repo>` -> `/hff download <repo> <file>` ->
   `/model <alias>`. Uses `HF_TOKEN` env var for gated models.
   Ollama is an explicit opt-in: `installOllama: true` plus
-  `agentSettings.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
+  `runtime.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
   Cloud backends: `openai`, `anthropic`, `google`, `mistral`, `groq`, `together`,
   `perplexity`, `cohere`, `deepseek`, `xai` (Grok), `openrouter` (100+ models).
   All configured in `~/.kdeps/config.yaml` under `llm.backend` and the matching
@@ -210,10 +212,12 @@ Rules of thumb:
 - **Every distributable project** needs `kdeps.pkg.yaml` at the package root
   (`type: workflow | component | agency`). Version must match `metadata.version`.
   For kdeps.io publishing, read `references/registry.md`.
-- Components cannot contain `settings:` (no servers, no ports). They are pure
+- Components cannot contain `deploy:` (no servers, no ports). They are pure
   resource bundles.
-- Every `workflow.yaml` requires a `settings:` block. Internal agency agents
-  without a server use a minimal one (e.g. `agentSettings: { timezone: "UTC" }`).
+- `workflow.yaml` top-level groups: `deploy:` (apiServer, webServer, TLS,
+  input, `runtime:`), `memory:` (session store), `agent:` (LLM REPL input),
+  `resources:`, `evals:`. A chat groups its keys under `model:`, `context:`,
+  `harness:`, `tools:`, `rag:`, `guardrails:`.
 - Expression syntax: `{{ get('key') }}` reads request params or a resource's
   output by actionId; `output('actionId')` reads structured output;
   `set('k', v)` stores a value; `input('name')` reads a component input;
@@ -258,7 +262,7 @@ metadata:
   description: "What this agent does"   # shown to the LLM in agent mode
   targetActionId: response  # resource whose output becomes the HTTP response
 
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"
     portNum: 16395
@@ -282,7 +286,7 @@ A resource per file under `resources/`:
 # resources/llm.yaml
 actionId: llm
 name: LLM Chat
-validations:
+guardrails:
   methods: [POST]
   routes: [/api/v1/chat]
   check:
@@ -291,17 +295,20 @@ validations:
     code: 400
     message: "'q' is required"
 chat:
-  model: llama3.2:1b        # llamafile alias - auto-downloaded, no LLM server needed
-  role: user
-  prompt: "{{ get('q') }}"
-  timeout: 60s              # hard stop; returns error, does not retry
+  model:
+    name: llama3.2:1b        # llamafile alias - auto-downloaded, no LLM server needed
+    timeout: 60s              # hard stop; returns error, does not retry
+  context:
+    role: user
+    prompt: "{{ get('q') }}"
 ```
 
 ```yaml
 # resources/response.yaml
 actionId: response
 name: API Response
-requires: [llm]             # will not run until llm finishes
+workflow:
+  requires: [llm]             # will not run until llm finishes
 apiResponse:
   success: true
   response:
@@ -354,20 +361,23 @@ retry/cache/TLS, sql transactions, email IMAP search, browser actions,
 onError), read `references/resources.md`.
 
 Optional per-resource fields: `description`, `category`,
-`items:` (run once per list item; read `get('current')`, `get('index')`),
-`loop:` (`while:` expression with `maxIterations`, optional `every:`/`at:`),
+`workflow:` with `requires:`, `items:` (run once per list item; read
+`get('current')`, `get('index')`), `loop:` (`while:` expression with
+`maxIterations`, optional `every:`/`at:`) and `onError:`,
 `before:`/`after:` (expression lists run around the action), and
-`validations:` (`methods`/`routes`/`headers`/`params` gates, `skip:` silent
+`guardrails:` (`methods`/`routes`/`headers`/`params` gates, `skip:` silent
 no-op conditions, `check:` + `error:` hard validation).
 
 ### LLM tools in a chat resource
 
 ```yaml
 chat:
-  prompt: "Research {{ get('q') }} and summarize."
-  componentTools:       # opt-in: expose installed components as function-calling tools
-    - scraper
-    - search
+  context:
+    prompt: "Research {{ get('q') }} and summarize."
+  tools:
+    components:       # opt-in: expose installed components as function-calling tools
+      - scraper
+      - search
 ```
 
 ### Multi-turn chat (conversation history)
@@ -377,12 +387,14 @@ Pass runtime history as role-tagged messages via `messages:` (kdeps from
 
 ```yaml
 chat:
-  model: llama3.2:1b
-  messages: "{{ get('history') }}"  # [{role: user, content: ...}, ...] from the request body
-  scenario:
-    - role: system
-      prompt: You are a helpful, concise assistant.
-  prompt: "{{ get('q') }}"
+  model:
+    name: llama3.2:1b
+  context:
+    messages: "{{ get('history') }}"  # [{role: user, content: ...}, ...] from the request body
+    scenario:
+      - role: system
+        prompt: You are a helpful, concise assistant.
+    prompt: "{{ get('q') }}"
 ```
 
 The client sends `{"q": "...", "history": [{"role":"user","content":"..."},
@@ -414,7 +426,7 @@ read `references/workflow-input.md`.
 
 ```yaml
 # File input — runs once and exits
-settings:
+deploy:
   input:
     sources: [file]
     file:
@@ -424,7 +436,7 @@ settings:
 
 ```yaml
 # Stateless bot — stdin JSON in, stdout reply out
-settings:
+deploy:
   input:
     sources: [bot]
     bot:
@@ -434,10 +446,10 @@ settings:
 
 ```yaml
 # Component-only sub-workflow (no HTTP server)
-settings:
+deploy:
   input:
     sources: [api]
-  agentSettings:
+  runtime:
     pythonVersion: "3.12"
 # Invoked via component: from a parent workflow; inputs via with:
 ```
@@ -626,8 +638,8 @@ but every agent still needs a `settings:` block -- give internal agents a
 minimal one:
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     timezone: "UTC"
 ```
 
@@ -678,11 +690,11 @@ If missing, run `scripts/scaffold-pkg.sh .` from the package root (or write it
 from `metadata.name`, `metadata.version`, and the package `type`).
 For publishing steps, read `references/registry.md`.
 
-Inline self-tests in `workflow.yaml` or `agency.yaml` (HTTP assertions against
-the live server):
+Inline evals in `workflow.yaml` (HTTP assertions against the workflow's
+router, plus optional `judges:`, `repeat:` and pass-rate `threshold:`):
 
 ```yaml
-tests:
+evals:
   - name: greet returns 200
     request:
       method: GET

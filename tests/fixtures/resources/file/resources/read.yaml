@@ -1,6 +1,7 @@
 actionId: readFile
 name: Read File
-requires: [createFile]
+workflow:
+  requires: [createFile]
 file:
   operation: read
   path: /tmp/skill-test-file.json

@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [browse]
+workflow:
+  requires: [browse]
 apiResponse:
   success: true
   response:

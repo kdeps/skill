@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [llm]
+workflow:
+  requires: [llm]
 apiResponse:
   success: true
   response:

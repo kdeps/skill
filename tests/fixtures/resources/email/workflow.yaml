@@ -7,11 +7,11 @@ metadata:
   description: Skill fixture — email resource (schema validation only)
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17611
     routes:
       - path: /api/v1/email
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC

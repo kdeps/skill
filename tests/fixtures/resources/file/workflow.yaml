@@ -7,17 +7,17 @@ metadata:
   description: Skill fixture — file resource
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"
     portNum: 17602
     routes:
       - path: /api/v1/file
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
 
-tests:
+evals:
   - name: file endpoint returns 200
     request:
       method: GET

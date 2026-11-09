@@ -2,7 +2,7 @@
 
 Functions and operators usable in any field that supports `{{ }}`
 interpolation and in expression lists (`before:`, `after:`,
-`validations.check`, `validations.skip`, `onError.expr`, `onError.when`).
+`guardrails.check`, `guardrails.skip`, `onError.expr`, `onError.when`).
 
 ## Jinja2 preprocessing
 
@@ -140,7 +140,7 @@ python.exitCode('id')  python.stderr('id')
 ## Usage contexts
 
 ```yaml
-validations:
+guardrails:
   check:                          # ALL must be true or the request is rejected
     - get('email') contains '@'
     - len(get('password')) >= 8
@@ -153,9 +153,10 @@ after:
   - set('displayName', get('name') ?? 'Guest')
 
 chat:
-  prompt: |                       # {{ }} interpolation in string fields
-    User is {{ get('age') >= 18 ? 'adult' : 'minor' }}.
-    Role: {{ get('role') ?? 'user' }}.
+  context:
+    prompt: |                       # {{ }} interpolation in string fields
+      User is {{ get('age') >= 18 ? 'adult' : 'minor' }}.
+      Role: {{ get('role') ?? 'user' }}.
 ```
 
 Keep expressions simple -- complex logic belongs in a `python:` resource.
