@@ -1,8 +1,0 @@
-actionId: respond
-name: API Response
-workflow:
-  requires: [answer]
-apiResponse:
-  success: true
-  response:
-    twiml: get('answer').twiml

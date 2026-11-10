@@ -15,7 +15,7 @@ and agencies — with [kdeps.io](https://kdeps.io) registry packaging built in.
   (`kdeps [path]`)
 - Components, agencies, expressions, validation, and error handling
 - Running, validating, packaging, and publishing (`kdeps run`, `kdeps validate`,
-  `kdeps bundle`, `kdeps registry verify`, `kdeps registry submit`)
+  `kdeps bundle`, `kdeps verify`, `kdeps submit`)
 
 ## Install
 
@@ -45,15 +45,15 @@ Docs: [kdeps.com/getting-started/agent-skills](https://kdeps.com/getting-started
 skills/kdeps/               # the agent skill (agentskills.io layout)
   SKILL.md                  # entry point: decision guide + scaffolds
   references/
-    resources.md            # full per-action schemas
+    resources.md            # chat, agent, component inputs, apiResponse
     expressions.md          # expression functions and operators
-    workflow-input.md       # settings.input sources (api, bot, file)
-    workflow-settings.md    # apiServer, auth, TLS, agentSettings, session
+    workflow-input.md       # deploy.input sources (api, bot, file)
+    workflow-settings.md    # deploy (apiServer, auth, TLS, runtime), memory, agent
     registry.md             # kdeps.pkg.yaml and publishing to kdeps.io
   scripts/
     scaffold-pkg.sh         # generate kdeps.pkg.yaml from metadata
 tests/                      # CI only — not installed with the skill
-  validate.sh               # validate every resource type + component + agency
+  validate.sh               # validate every fixture + component + agency
   npx-skills-install.sh     # verify npx skills add installs skill files only
   check_manifests.py        # kdeps.pkg.yaml vs metadata alignment
   fixtures/                 # minimal workflows used by the test script
@@ -73,15 +73,15 @@ CI runs all three on every push to `main`.
 
 | Fixture | What it tests |
 |---|---|
-| `resources/*` (18) | Each primary resource action + `kdeps.pkg.yaml` |
+| `resources/*` (12) | One per primary action or shipped component call + `kdeps.pkg.yaml` |
 | `components/echo` | Local component + HTTP caller |
 | `workflows/inline-resources` | Resources inline in `workflow.yaml` |
 | `workflows/file-input` | `input.sources: [file]` |
 | `workflows/component-input` | Api-only sub-workflow (no server) |
 | `workflows/component-caller` | Parent workflow + `component:` call |
-| `workflows/llm-repl` | `settings.llm` stdin REPL (`kdeps [path]`) |
+| `workflows/llm-repl` | `agent:` stdin REPL (`kdeps [path]`) |
 | `workflows/webserver` | Static `webServer` |
-| `workflows/session` | `settings.session` SQLite config |
+| `workflows/session` | `memory:` SQLite config |
 | `workflows/control-flow` | `items:` iteration + `before:` expressions |
 | `agencies/simple` | Two-agent agency + `agent:` resource |
 | `components/echo/.../echo` | Standalone component package |

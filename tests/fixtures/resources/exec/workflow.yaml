@@ -4,7 +4,7 @@ kind: Workflow
 metadata:
   name: skill-test-exec
   version: "1.0.0"
-  description: Skill fixture — exec resource
+  description: Skill fixture — exec component call
   targetActionId: respond
 
 deploy:

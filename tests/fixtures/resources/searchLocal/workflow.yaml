@@ -4,7 +4,7 @@ kind: Workflow
 metadata:
   name: skill-test-search-local
   version: "1.0.0"
-  description: Skill fixture — searchLocal resource
+  description: Skill fixture — searchLocal component call
   targetActionId: respond
 
 deploy:

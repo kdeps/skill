@@ -29,7 +29,7 @@ get('limit', '10')              # second positional arg can also be a default va
 
 set('count', 1)                 # store in memory (request-scoped)
 set('user', data, 'session')    # store in session (persists across requests;
-                                # needs settings.session in workflow.yaml)
+                                # needs memory in workflow.yaml)
 
 output('llmResource')           # output of a completed resource, by actionId;
                                 # prefer over get() when auto-detection is ambiguous

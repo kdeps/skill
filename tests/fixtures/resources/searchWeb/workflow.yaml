@@ -4,7 +4,7 @@ kind: Workflow
 metadata:
   name: skill-test-search-web
   version: "1.0.0"
-  description: Skill fixture — searchWeb resource
+  description: Skill fixture — searchWeb component call
   targetActionId: respond
 
 deploy:

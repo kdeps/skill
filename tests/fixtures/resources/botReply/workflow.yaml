@@ -4,7 +4,7 @@ kind: Workflow
 metadata:
   name: skill-test-botreply
   version: "1.0.0"
-  description: Skill fixture — botReply resource (stateless bot)
+  description: Skill fixture — stateless bot reply (apiResponse)
   targetActionId: reply
 
 deploy:

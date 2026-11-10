@@ -5,4 +5,4 @@ workflow:
 apiResponse:
   success: true
   response:
-    content: output('fetch').content
+    content: output('fetch')

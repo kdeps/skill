@@ -1,4 +1,6 @@
 actionId: reply
 name: Bot Reply
-botReply:
-  text: "Hello from skill test: {{ get('message', 'World') }}"
+# A bot sends the workflow's result: apiResponse's response is the reply text.
+apiResponse:
+  success: true
+  response: "Hello from skill test: {{ get('message', 'World') }}"

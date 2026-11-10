@@ -4,7 +4,7 @@ kind: Workflow
 metadata:
   name: skill-test-file
   version: "1.0.0"
-  description: Skill fixture — file resource
+  description: Skill fixture — file component call
   targetActionId: respond
 
 deploy:

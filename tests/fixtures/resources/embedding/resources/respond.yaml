@@ -5,4 +5,4 @@ workflow:
 apiResponse:
   success: true
   response:
-    indexed: output('index').success
+    indexed: output('index')

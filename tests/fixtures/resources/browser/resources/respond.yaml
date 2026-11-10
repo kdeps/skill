@@ -1,8 +1,0 @@
-actionId: respond
-name: API Response
-workflow:
-  requires: [browse]
-apiResponse:
-  success: true
-  response:
-    title: get('browse')

@@ -1,8 +1,0 @@
-actionId: respond
-name: API Response
-workflow:
-  requires: [send]
-apiResponse:
-  success: true
-  response:
-    sent: get('send').success

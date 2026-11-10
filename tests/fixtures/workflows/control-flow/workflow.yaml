@@ -24,8 +24,10 @@ resources:
         - alpha
         - beta
         - gamma
-    exec:
-      command: 'printf "%s\n" "{{ get(''current'') }}"'
+    component:
+      name: exec
+      with:
+        command: 'printf "%s\n" "{{ get(''current'') }}"'
 
   - actionId: respond
     name: API Response

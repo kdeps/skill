@@ -8,6 +8,8 @@ guardrails:
   error:
     code: 400
     message: "'text' is required"
-exec:
-  command: "echo 'echo:{{ get('text') }}'"
-  timeout: 10s
+component:
+  name: exec
+  with:
+    command: "echo 'echo:{{ get('text') }}'"
+    timeout: 10s

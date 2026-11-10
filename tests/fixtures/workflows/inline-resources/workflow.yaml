@@ -19,9 +19,11 @@ deploy:
 resources:
   - actionId: run
     name: Inline Exec
-    exec:
-      command: "echo '{\"inline\":true}'"
-      timeout: 10s
+    component:
+      name: exec
+      with:
+        command: "echo '{\"inline\":true}'"
+        timeout: 10s
 
   - actionId: respond
     name: API Response

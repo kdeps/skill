@@ -4,7 +4,7 @@ kind: Workflow
 metadata:
   name: skill-test-git
   version: "1.0.0"
-  description: Skill fixture — git resource
+  description: Skill fixture — git component call
   targetActionId: respond
 
 deploy:

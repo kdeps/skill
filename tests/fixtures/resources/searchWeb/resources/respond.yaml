@@ -5,4 +5,4 @@ workflow:
 apiResponse:
   success: true
   response:
-    results: output('search').results
+    results: output('search')

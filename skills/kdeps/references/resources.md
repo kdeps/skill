@@ -1,12 +1,14 @@
 # kdeps Resource Action Reference
 
-Full per-action schemas for resources. Every resource has exactly one primary
-action; `apiResponse:` may additionally sit on the same resource to format its
-output into the HTTP response. One resource per file (only the first YAML
-document in a file is loaded). All actions work in both workflow mode and
-agent mode. Common cross-cutting fields (`actionId`, `requires`,
-`guardrails`, `before`, `after`, `items`, `loop`, `onError`) are at the end
-of this file.
+Full schemas for resources. A workflow resource has exactly one primary
+action: `chat`, `agent`, or `component`. Everything else is a shipped
+component called with `component: {name: <component>, with: {...}}`; its
+inputs are listed below (from each component's `interface.inputs`).
+`apiResponse:` may sit on the same resource to format its output into the
+HTTP response. One resource per file (only the first YAML document in a file
+is loaded). Common cross-cutting fields (`actionId`, `workflow:` with
+`requires`/`items`/`loop`/`onError`, `guardrails`, `before`, `after`) are at
+the end of this file.
 
 ## chat (LLM)
 
@@ -129,411 +131,176 @@ request body, so a persistent memory key named `history` silently shadows the
 request value. Use a distinct name or `input('history')` (strictly request
 data) if you also store conversation state server-side.
 
-## httpClient
+## http_request (component)
 
-Outbound HTTP request. JSON bodies are parsed automatically; other content
-types are stored as a string. Auth and proxy go in `~/.kdeps/config.yaml`
-under `http_connections:`, referenced via `connectionName:`.
+Make an HTTP request through the kdeps API.
 
 ```yaml
-httpClient:
-  method: GET                  # GET, POST, PUT, PATCH, DELETE
-  url: "https://api.example.com/{{ get('id') }}"
-  headers:
-    Content-Type: application/json
-  data:                        # request body, serialized as JSON
-    key: value
-  timeout: 30s
-
-  connectionName: stripe       # named connection (auth + proxy)
-
-  retry:
-    maxAttempts: 3             # total attempts including the first
-    backoff: 1s                # initial wait; doubles each retry
-    maxBackoff: 30s
-    retryOn: [429, 500, 502, 503, 504]
-
-  cache:                       # presence of cache: enables caching
-    ttl: 5m
-    key: "custom-cache-key"    # defaults to the URL
-
-  followRedirects: true
-  tls:
-    insecureSkipVerify: false  # never true in production
-    certFile: "/path/cert.pem"
-    keyFile: "/path/key.pem"
-    caFile: "/path/ca.pem"
+component:
+  name: http_request
+  with:
+    url: "..."                   # required: URL to request
+    method: "..."                # HTTP method (default GET)
+    timeout: "..."               # Request timeout, for example 30s
+    headers: {}                  # HTTP headers as key-value pairs
+    data: {}                     # Request body as JSON (for POST, PUT, PATCH)
+    files: {}                    # Multipart form file fields; each value is a file path, data entries become text fields
+    failOnError: false           # Treat a non-2xx response as an error instead of returning it
+    saveTo: "..."                # Absolute path to stream a 2xx response body into; returns savedTo and bytes
+    retry: {}                    # Retry block with maxAttempts, backoff, maxBackoff and retryOn status codes
+    cache: {}                    # Cache block with ttl and key; presence enables response caching
+    connectionName: "..."        # Named connection in ~/.kdeps/config.yaml supplying auth and proxy
+    accountName: "..."           # Named account under the agent identity; resolved as Basic Auth
+    followRedirects: false       # Follow redirects; leave unset to follow, false to stop at the first 3xx
+    tls: {}                      # TLS block with insecureSkipVerify, certFile, keyFile and caFile
 ```
+## sql (component)
 
-`http_connections` in `~/.kdeps/config.yaml`: `auth.type` is `basic`
-(`username`/`password`), `bearer` (`token`), `api_key` (`key` = header name,
-`value` = header value), or `oauth2` (`token`); `proxy` is a proxy URL that
-may include `user:pass@`.
-
-Output access: `get('id')` (parsed body), `get('id').statusCode`,
-`get('id').headers`, `http.responseBody('id')`, `http.responseHeader('id', 'Content-Type')`.
-
-## sql
-
-Runs SQL against a named connection. DSN lives in `~/.kdeps/config.yaml`
-under `sql_connections:`; pool config lives in `workflow.yaml` under
-`settings.sqlConnections`. Supports Postgres, MySQL, SQLite, SQL Server, Oracle.
+Run SQL against PostgreSQL, MySQL/MariaDB, SQLite, SQL Server or Oracle - one query, or several in a transaction.
 
 ```yaml
-sql:
-  connectionName: main         # must match a key in sql_connections
-  query: "SELECT * FROM users WHERE id = $1"
-  params:                      # always parameterize -- never interpolate user input
-    - get('user_id')
-  format: json                 # json (default), csv, table
-  maxRows: 100
-  timeout: 30s
+component:
+  name: sql
+  with:
+    connectionName: "..."       # required: Name under sql_connections in ~/.kdeps/config.yaml (postgres://, mysql://, sqlite://, sqlserver://, oracle://)
+    query: "..."                # The statement; placeholders $1, ?, @p1 or :1 all work with every database
+    params: []                  # Values for the placeholders, in order
+    transaction: false          # Run queries in one transaction (all or nothing)
+    queries: []                 # Transaction statements: [{query, params}] or [{query, paramsBatch: [[...], [...]]}]
+    format: "..."               # SELECT result shape: '' or table (rows), json (a JSON string), csv
+    timeout: "..."              # Statement timeout as a duration (default KDEPS_SQL_TIMEOUT, else 30s)
+    maxRows: 0                  # SELECT rows to return at most (default KDEPS_SQL_MAX_ROWS, else 1000)
 ```
+## python (component)
 
-Transactions and batches (all-or-nothing; rollback on any failure):
+Run a Python script through the kdeps API.
 
 ```yaml
-sql:
-  connectionName: main
-  transaction: true
-  queries:
-    - query: "UPDATE accounts SET balance = balance - $1 WHERE id = $2"
-      params: [get('amount'), get('from_account')]
-    - query: "INSERT INTO products (name, price) VALUES ($1, $2)"
-      paramsBatch: "{{ get('products') }}"   # array of parameter arrays
+component:
+  name: python
+  with:
+    script: "..."              # Inline Python source. Use scriptFile instead to run a file
+    scriptFile: "..."          # Path to a .py file. Relative paths resolve against the kdeps process working directory
+    args: []                   # Arguments passed to the script after the script path or -c
+    env: {}                    # Extra environment variables as key-value pairs; the process environment is inherited
+    timeout: "..."             # Hard stop for the script, for example 30s
+    venvName: "..."            # Name of a dedicated virtual environment; omit to share the default one
+    pythonVersion: "..."       # Python version for the venv; defaults to KDEPS_PYTHON_VERSION, then 3.12
+    packages: []               # Python packages installed into the venv before the script runs
 ```
+## exec (component)
 
-Output access: `get('id')` (row array), `get('id')[0].name`.
-
-## python
-
-Runs a Python script; stdout must be valid JSON and becomes the output.
-`script` and `scriptFile` are mutually exclusive. Packages come from
-`settings.agentSettings.pythonPackages` (installed via uv).
+Run a shell command through the kdeps API.
 
 ```yaml
-python:
-  script: |                    # inline; must print JSON to stdout
-    import json
-    print(json.dumps({"ok": True}))
-  scriptFile: "./scripts/process.py"   # alternative: file path; args via sys.argv
-  args:
-    - "--input"
-    - "{{ get('input_file') }}"
-  venvName: "my-env"           # resources sharing the same name share packages
-  timeout: 60s                 # non-zero exit code counts as failure
+component:
+  name: exec
+  with:
+    command: "..."          # required: Command to run; sh -c on Unix, cmd /C on Windows, unless args are given
+    args: []                # Arguments for command. When set, command runs directly instead of through a shell
+    env: {}                 # Extra environment variables as key-value pairs; the process environment is inherited
+    workingDir: "..."       # Directory the command runs in. Default: the kdeps process working directory
+    timeout: "..."          # Hard stop for the command, for example 30s
 ```
+## file (component)
 
-Output access: `get('id')`, `get('id').field`, `python.exitCode('id')`,
-`python.stderr('id')`.
-
-## exec
-
-Runs a shell command; stdout is the output. Echo JSON for structured output.
+Structured filesystem operations (read, write, patch, list, delete, exists, mkdir, copy, move, append).
 
 ```yaml
-exec:
-  command: |                   # supports multiline scripts and {{ }} interpolation
-    echo '{"status": "ok"}'
-  args: ["--flag", "value"]    # optional
-  workingDir: "/tmp"           # optional
-  env:                         # optional, this execution only
-    TEMP_VAR: "value"
-  timeout: 30s
+component:
+  name: file
+  with:
+    operation: "..."           # required: read, write, patch, list, delete, exists, mkdir, copy, move or append
+    path: "..."                # Target file or directory (the destination for copy and move); relative paths resolve against the working directory
+    source: "..."              # Source path for copy and move
+    content: "..."             # Text to write or append
+    patch: "..."               # Unified diff applied by patch
+    encoding: "text"           # read output encoding, text or base64
+    pattern: "..."             # Glob on entry names for list (e.g. *.go)
+    recursive: false           # list walks subdirectories
+    backup: false              # write and patch copy the existing file to <path>.bak first
+    dryRun: false              # Report what a changing operation would do without doing it
+    mode: "..."                # Octal permissions for write (default 0644) and mkdir (default 0755)
+    appendNewline: false       # write and append end the content with a newline
 ```
+## git (component)
 
-Validate user input before interpolating into commands (injection risk):
-`check: [get('input') matches '^[a-zA-Z0-9_-]+$']`.
-
-Output access: `get('id')`, `exec.exitCode('id')`, `exec.stderr('id')`.
-
-## file
-
-Structured filesystem operations -- read, write, patch, list, delete, exists, mkdir, copy, move, append.
+Structured git operations (status, diff, log, show, branch, remote, add, commit, checkout, init, clone, push, pull).
 
 ```yaml
-file:
-  operation: read                 # required: read | write | patch | list | delete | exists | mkdir | copy | move | append
-  path: "/path/to/file.txt"       # required for most ops
-  source: "/path/to/source"       # required for copy, move
-  content: "hello world"          # required for write, append
-  patch: "@@ -1 +1 @@\n-old\n+new\n"  # required for patch (unified diff)
-  encoding: text                  # text (default) or base64 (read only)
-  pattern: "*.go"                 # glob filter for list
-  recursive: false                # recurse subdirectories for list
-  backup: false                   # create .bak before overwrite
-  dryRun: false                   # preview without modifying
-  mode: "0644"                    # file mode for write/mkdir
-  appendNewline: false            # ensure trailing newline on write/append
+component:
+  name: git
+  with:
+    operation: "..."        # required: status, diff, log, show, branch, remote, add, commit, checkout, init, clone, push or pull
+    workingDir: "..."       # Repository directory (clone - the target directory); default the current directory
+    paths: "..."            # Space-separated paths for add, checkout, diff, log (add defaults to .)
+    message: "..."          # Commit message (commit)
+    branch: "..."           # Branch for checkout, push, pull
+    url: "..."              # Repository URL (clone)
+    remote: "origin"        # Remote for push and pull
+    args: "..."             # Extra space-separated git arguments (show)
+    maxCount: 10            # Commits to list (log)
+    dryRun: false           # Report what a write operation would do without doing it
 ```
+## web_scraper (component)
 
-All operations return a result map with `success: bool`. Read returns `content`, `size`, `lines`. Write returns `written`, `size`, `backup`, `backupPath`. List returns `entries`, `count`.
-
-## git
-
-Version control operations -- status, diff, log, show, branch, remote, add, commit, checkout, init, clone, push, pull.
+Fetch a page through the kdeps API.
 
 ```yaml
-git:
-  operation: status                 # required: status | diff | log | show | branch | remote | add | commit | checkout | init | clone | push | pull
-  workingDir: "/path/to/repo"       # working directory
-  paths: ["src/main.go"]            # file paths for add/checkout/diff
-  message: "feat: done"            # commit message
-  branch: "feature"                 # branch name for checkout/branch/push/pull
-  url: "https://github.com/..."    # remote URL for clone
-  remote: "origin"                 # remote name (default: origin)
-  args: ["--stat"]                 # additional git arguments
-  maxCount: 10                     # log limit (default: 10)
-  dryRun: false                    # dry-run mode
+component:
+  name: web_scraper
+  with:
+    url: "..."        # required: Page URL
 ```
+## web_search (component)
 
-Read operations (status, diff, log, show, branch, remote) return structured output. Write operations (add, commit, checkout, init, clone, push, pull) support dryRun.
-
-## codeIntelligence
-
-Code navigation operations -- symbol search, definitions, references, document symbols, hover, diagnostics. Uses ripgrep (rg).
+Search the web through the kdeps API.
 
 ```yaml
-codeIntelligence:
-  operation: symbolSearch          # required: symbolSearch | definition | references | documentSymbols | hover | diagnostics
-  path: "/path/to/project"         # file or directory to search
-  query: "parseRequest"            # search pattern (required for symbolSearch)
-  symbol: "parseRequest"           # symbol name (required for definition/references/hover)
-  pattern: "*.go"                  # glob filter
-  language: "go"                   # rg --type value (go, py, js, etc.)
-  context: 2                       # context lines before/after match
-  limit: 20                        # max results
+component:
+  name: web_search
+  with:
+    query: "..."       # required: Search query
 ```
+## search_local (component)
 
-Requires `rg` (ripgrep) to be installed. Diagnostics runs `go vet` for Go files. Returns structured results with file, line, and content.
-
-## email
-
-SMTP send and IMAP read/search/modify. Credentials live in
-`~/.kdeps/config.yaml` under `smtp_connections:` / `imap_connections:`
-(`host`, `port`, `username`, `password`, `tls`, `insecureSkipVerify`).
+Search local files through the kdeps API.
 
 ```yaml
-email:
-  action: send            # send (default), read, search, modify
-  timeout: 30s
-
-  # send
-  smtpConnection: default # required for send
-  from: "reports@example.com"
-  to: ["alice@example.com"]
-  cc: []
-  bcc: []
-  subject: "Daily Report"
-  body: "{{ get('llm') }}"
-  html: false             # true = treat body as HTML
-  attachments:
-    - "/data/reports/q3.pdf"
-
-  # read / search / modify
-  imapConnection: inbox   # required for read/search/modify
-  mailbox: "INBOX"
-  limit: 10
-  markRead: false
-  search:                 # search action only
-    from: "orders@shopify.com"
-    to: ""
-    subject: "New order"
-    body: ""
-    since: "2024-01-01"   # ISO date
-    before: ""
-    unseen: true
-    flagged: false
-  uids:                   # modify action only
-    - "{{ get('findOrders')[0].uid }}"
-  modify:                 # modify action only
-    markSeen: true
-    markFlagged: false
-    markDeleted: false
-    moveTo: "Processed"
-    expunge: false
+component:
+  name: search_local
+  with:
+    query: "..."             # Search term. A query or a glob is required
+    path: "..."              # Directory to search. Empty searches the working directory
+    glob: "..."              # File glob filter, for example *.go
+    limit: 3                 # Maximum number of results
+    index: false             # Build and use the folder's TF-IDF index for ranked search
+    fuzzy: false             # Fuzzy (Levenshtein) matching when index is true
+    maxDistance: 2           # Maximum edit distance for fuzzy matching
+    indexDBPath: "..."       # Index database path; defaults to the folder's kdeps data dir
+    graphBoost: false        # Re-rank indexed results using the folder's reference/topic graph; requires index
 ```
+## embedding (component)
 
-Output: send -> `{success, action, from, to, subject}`; read/search -> array of
-`{uid, subject, from, to, date, body, html}`; modify -> `{success, modified}`.
-
-## scraper (native)
-
-Fetches a URL and returns text content, optionally scoped by CSS selector.
-For PDFs, .docx, .xlsx, and OCR, install the registry component instead
-(`kdeps registry install scraper`).
+Run one embedding operation through the kdeps API.
 
 ```yaml
-scraper:
-  url: "https://example.com"   # required
-  selector: "article.content"  # optional CSS selector
-  timeout: 30                  # seconds (default 30)
+component:
+  name: embedding
+  with:
+    operation: "..."             # required: index, search, upsert, delete, vectorize, embed_query or rerank
+    text: "..."                  # Text to index, search for, upsert or delete
+    collection: "..."            # Collection (namespace) inside the local embedding database
+    dbPath: "..."                # Path to the SQLite embedding database; defaults come from the embedding defaults
+    limit: 0                     # Maximum number of search results
+    inputs: []                   # Texts to embed for vectorize and embed_query
+    model: "..."                 # Embedding model, for example text-embedding-3-small
+    backend: "..."               # Embedding backend: openai, ollama, google
+    baseURL: "..."               # Custom base URL for an OpenAI-compatible backend
+    rerankQuery: "..."           # Query the candidate documents are ranked against (operation rerank)
+    rerankDocuments: []          # Candidate documents to rerank (operation rerank)
+    rerankTopN: 0                # Number of top reranked results; 0 returns all
 ```
-
-Output: `output('id').content`, `.url`, `.status`, `.json`.
-
-## searchWeb (native)
-
-Web search. Default provider is DuckDuckGo (no key needed). Brave, Bing, and
-Tavily need an API key in `~/.kdeps/config.yaml` under `search_connections:`.
-
-```yaml
-searchWeb:
-  query: "{{ get('query') }}"  # required
-  provider: ddg                # ddg (default), brave, bing, tavily
-  connectionName: brave        # required for brave/bing/tavily
-  maxResults: 5
-  timeout: 15                  # seconds
-```
-
-Output: `output('id').results` (array of `{title, url, snippet}`), `.count`,
-`.query`, `.provider`, `.json`.
-
-## searchLocal (native)
-
-Recursive local file search by filename glob and/or content keyword. When both
-`query` and `glob` are set, a file must match both.
-
-```yaml
-searchLocal:
-  path: "/data/documents"   # required: directory to search
-  query: "invoice total"    # optional: case-insensitive keyword in contents
-  glob: "*.txt"             # optional: filename pattern
-  limit: 10                 # 0 = unlimited
-```
-
-Output: `output('id').results` (array of `{path, name, size, isDir}`),
-`.count`, `.path`, `.json`.
-
-## embedding (native)
-
-Vector embeddings for RAG pipelines. Supports OpenAI (`text-embedding-3-small`), Google (`text-embedding-004`), HuggingFace (`BAAI/bge-small-en-v1.5`), Jina, VoyageAI, Bedrock (Titan/Cohere), Ollama, and Cybertron (local CPU). The `embedding:` resource generates embeddings from text inputs for use with `vectorStore:`.
-
-```yaml
-embedding:
-  operation: "vectorize"           # vectorize (batch documents), embed_query (single)
-  model: "text-embedding-3-small"  # model name
-  backend: "openai"                # google, huggingface, jina, voyageai, bedrock, ollama, cybertron
-  inputs:                          # text inputs to embed (vectorize operation)
-    - "first document"
-    - "second document"
-  text: "single query"             # single text to embed (embed_query operation)
-```
-
-Output: `.model`, `.vectors` or `.vector` (JSON-encoded float arrays), `.count`.
-
-## browser
-
-Drives a real browser (Playwright). Requires `npx playwright install chromium`
-on the host. Output is the result of the last `evaluate` action, or the final
-page URL if none.
-
-```yaml
-browser:
-  engine: chromium          # chromium (default), firefox, webkit
-  url: "https://example.com"
-  waitFor: "#username"      # CSS selector to wait for before actions
-  headless: true
-  sessionId: "user-session" # named persistent context: cookies/storage survive
-                            # across resources and API calls
-  stealthMode: false        # anti-bot-detection settings
-  userAgent: ""             # custom UA string
-  viewport:
-    width: 1280
-    height: 720
-  timeout: 30s
-  actions:                  # ordered; 16 types: navigate, click, fill, type,
-                            # upload, select, check, uncheck, hover, scroll,
-                            # press, clear, evaluate, screenshot, wait
-    - action: fill
-      selector: "#username"
-      value: "{{ get('email') }}"
-    - action: click
-      selector: "button[type='submit']"
-    - action: wait
-      wait: "3000ms"        # or selector: ".loaded"
-    - action: upload
-      selector: "#file-input"
-      files: ["/tmp/document.pdf"]
-    - action: screenshot
-      outputFile: /tmp/page.png
-      fullPage: true
-    - action: evaluate
-      script: "document.title"
-```
-
-## telephony
-
-In-call actions for Twilio-compatible providers. The provider POSTs its call
-webhook (fields like `CallSid`, `From`, `To`, `Digits`, `SpeechResult`) to a
-kdeps API route; the resource builds a TwiML response returned via
-`apiResponse`. Call state is shared across telephony resources in the same run.
-
-```yaml
-telephony:
-  action: menu            # answer, say, ask, menu, dial, record,
-                          # mute, unmute, hangup, reject, redirect
-  # say / prompt
-  say: "Press 1 for sales."  # TTS text
-  voice: alice               # TTS voice name
-  audio: ""                  # audio URL/path instead of TTS
-  # input collection (ask / menu)
-  mode: dtmf              # dtmf (default), speech, both
-  grammar: ""             # inline GRXML grammar
-  grammarUrl: ""
-  limit: 4                # max digits
-  terminator: "#"         # digit that ends input
-  timeout: 5s             # no-input timeout
-  interDigitTimeout: 2s
-  # menu -- matches map input to result.status: match + result.interpretation;
-  # branch with downstream resources via guardrails.skip
-  matches:
-    - keys: ["1"]         # DTMF digits or speech phrases
-    - keys: ["2"]
-  # tries, onNoMatch, onNoInput, onFailure, matches[].invoke/expr are
-  # schema-accepted but NOT yet evaluated -- do not rely on them
-  # dial
-  to: ["sip:agent@pbx.example.com", "+15005550001"]
-  from: "+18005550000"    # caller ID override
-  for: 30s                # dial timeout
-  # record
-  maxDuration: 60s
-  interruptible: true
-  format: wav             # wav (default) or mp3
-  # hangup / reject
-  reason: busy
-  headers:                # SIP headers
-    X-Custom: value
-```
-
-Output: `.twiml` (XML string); for ask/menu also `.result` with `status`
-(`match`/`nomatch`/`noinput`/`hangup`/`stop`), `mode`, `utterance`,
-`interpretation`, `confidence`, `match`. Accessors: `telephony.callId()`,
-`.from()`, `.to()`, `.status()`, `.utterance()`, `.digits()`, `.speech()`,
-`.confidence()`, `.twiml()`, `.match()`.
-
-Constraints (verified against the binary):
-- `ask` and `menu` require at least one of `grammar`, `grammarUrl`, `limit`,
-  `matches` or validation fails.
-- Telephony fields are static: `{{ }}` templates inside them (e.g. a dynamic
-  `say:`) are NOT interpolated. Return dynamic content via `apiResponse`
-  instead and let the provider glue speak it.
-- `telephony.*` accessors fail static analysis inside `{{ }}` templates.
-  Prefer reading webhook body fields directly (`get('SpeechResult')`,
-  `get('Digits')`), or copy via `before: [set('q', telephony.speech())]`
-  -- note the session accessors only return values after a telephony
-  resource has run in the same request.
-
-## botReply
-
-Sends a text reply to the bot platform that delivered the current message
-(Discord, Slack, Telegram, WhatsApp, or stdout in stateless mode).
-
-```yaml
-botReply:
-  text: "{{ get('llm') }}"
-```
-
 ## agent (inter-agent delegation)
 
 Runs another agent's full workflow and returns its `apiResponse.response`.
@@ -557,10 +324,9 @@ optional input = default applied.
 
 ```yaml
 component:
-  name: scraper
+  name: web_scraper
   with:
     url: "https://example.com/article"
-    selector: ".content"
 ```
 
 Output access: `output('callerActionId')` -- scoped to the caller, so the same
@@ -569,7 +335,7 @@ component's last resource is `exec`/`python`, the return value is the runner
 metadata map; parse structured stdout with `json(get('callerId').result).field`.
 
 Inside component resources, read caller-supplied values with
-`get('<componentName>.<input>')` (e.g. `get('scraper.url')`). Prefer this over
+`get('<componentName>.<input>')` (e.g. `get('web_scraper.url')`). Prefer this over
 `input('name')` when the parent workflow also has an HTTP request body — the
 expression env exposes `input` as the body map, which shadows the `input()`
 function.
@@ -595,6 +361,9 @@ apiResponse:
   model: llama3.2:1b            # optional metadata override; if a chat resource
   backend: file                 # ran, model/backend are added automatically
 ```
+
+In a bot workflow (`deploy.input.sources: [bot]`), the target resource's
+`response` is the reply sent to the platform (or printed in stateless mode).
 
 ## Common cross-cutting fields
 
@@ -656,48 +425,56 @@ Timeout defaults can be set globally via env vars: `KDEPS_CHAT_TIMEOUT`,
 `KDEPS_HTTP_TIMEOUT`, `KDEPS_PYTHON_TIMEOUT`, `KDEPS_EXEC_TIMEOUT`,
 `KDEPS_SQL_TIMEOUT`, and `KDEPS_ON_ERROR_ACTION` / `KDEPS_ON_ERROR_MAX_RETRIES`
 / `KDEPS_ON_ERROR_RETRY_DELAY` for error handling.
-## vectorStore (native)
+## vector_store (component)
 
-Vector database for RAG pipelines. Add documents with embeddings and search by similarity. Supports Qdrant, Chroma, Pinecone, Weaviate, OpenSearch, pgvector, MongoDB, Redis, Azure AI Search, MariaDB, Dolt, and Bedrock Knowledge Bases.
+Run one vector store operation through the kdeps API.
 
 ```yaml
-vectorStore:
-  provider: "qdrant"               # chroma, pinecone, weaviate, opensearch, pgvector,
-                                   #   mongodb, redis, azureaisearch, mariadb, dolt, bedrock
-  operation: "add_documents"       # add_documents, similarity_search
-  collection: "my-collection"      # collection/index/table name (bedrock: knowledgeBaseId)
-  embedModel: "text-embedding-3-small"
-  embedBackend: "openai"           # google, huggingface, jina, voyageai, bedrock, ollama, cybertron
-  query: "search text"             # similarity_search only
-  topK: 5
-  documents:                       # add_documents only
-    - content: "document text"
-      metadata:
-        source: "file.txt"
+component:
+  name: vector_store
+  with:
+    operation: "..."          # required: add_documents or similarity_search
+    collection: "..."         # required: Collection, index, or table name in the store
+    provider: "..."           # Vector store backend: qdrant (default), chroma, pinecone, azureaisearch, opensearch, elasticsearch, weaviate, pgvector, postgres, alloydb, cloudsql, mariadb, dolt, mysql, mongodb, redis, bedrock
+    url: "..."                # Endpoint or DSN for the store
+    apiKey: "..."             # Auth token. For mongodb the database name (default kdeps); for opensearch/elasticsearch user:pass
+    documents: []             # Documents to upsert for add_documents, each an object with content and optional metadata
+    query: "..."              # Natural language search query (operation similarity_search)
+    topK: 5                   # Number of results to return for similarity_search
+    embedModel: "..."         # Embedding model used to vectorize documents and queries, for example text-embedding-3-small
+    embedBackend: "..."       # Embedding provider: openai, ollama, google, or system (follow KDEPS_DEFAULT_BACKEND)
+    embedBaseURL: "..."       # Custom base URL for an OpenAI-compatible embedding backend
 ```
+## load_document (component)
 
-## loader (native)
-
-Document loading for RAG pipelines. Loads PDF, HTML, CSV, text files, and directories.
+Load a document through the kdeps API.
 
 ```yaml
-loader:
-  type: "pdf"                      # pdf, html, csv, text, directory, notion
-  source: "/path/to/document.pdf"  # file path or directory
-  chunkSize: 1000                  # split into chunks (0 = no split)
-  chunkOverlap: 100                # overlap between chunks
-  chunkSplitter: "recursive"       # recursive, token, markdown
+component:
+  name: load_document
+  with:
+    source: "..."              # required: Absolute path to the document
+    type: "..."                # Document type. Omitted types follow the file extension
+    columns: []                # CSV only - optional column filter. Empty loads all columns
+    password: "..."            # PDF only - decryption password for encrypted PDFs
+    chunkSize: 0               # Split into chunks of this many characters (for RAG). 0 = no splitting
+    chunkOverlap: 0            # Characters of overlap between consecutive chunks
+    chunkSplitter: "..."       # Splitting strategy when chunkSize is set - recursive (default), token, or markdown
 ```
+## transcribe_audio (component)
 
-## transcribe (native)
-
-Speech-to-text via OpenAI Whisper. Supports OpenAI, Groq, and local backends.
+Transcribe audio or video through a Whisper API with the kdeps API.
 
 ```yaml
-transcribe:
-  file: "audio.mp3"                # audio file path
-  model: "whisper-1"               # model name
-  backend: "openai"                # openai, groq, local
-  language: "en"                   # optional language hint
-  responseFormat: "json"           # json, text, srt, verbose_json, vtt
+component:
+  name: transcribe_audio
+  with:
+    file: "..."                 # required: Absolute path to the audio/video file (mp3, mp4, mpeg, mpga, m4a, wav, webm)
+    backend: "openai"           # Provider: openai, groq, or local (a self-hosted OpenAI-compatible Whisper server)
+    model: "whisper-1"          # Transcription model (groq uses whisper-large-v3)
+    language: "..."             # ISO-639-1 code, e.g. en; empty = auto-detect
+    baseURL: "..."              # Overrides the backend API base URL (the .../v1 part)
+    prompt: "..."               # Spelling hints for names and terms
+    responseFormat: "text"      # text, json, verbose_json, srt or vtt
+    temperature: "..."          # Sampling temperature 0-1
 ```

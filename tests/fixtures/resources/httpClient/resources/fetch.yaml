@@ -1,6 +1,8 @@
 actionId: fetch
 name: Fetch JSON
-httpClient:
-  method: GET
-  url: "https://httpbin.org/json"
-  timeout: 15s
+component:
+  name: http_request
+  with:
+    method: GET
+    url: "https://httpbin.org/json"
+    timeout: 15s

@@ -1,8 +1,8 @@
 # Workflow Settings Reference
 
-`settings:` in `workflow.yaml` configures servers, runtime environment, and
-optional features. Every workflow requires a `settings:` block (agency internal
-agents may use a minimal one).
+`workflow.yaml` configures how a workflow is served under `deploy:` (servers,
+TLS, input sources, `runtime:`), its session store under `memory:`, and its
+stdin REPL under `agent:`. All three are optional.
 
 ## apiServer (HTTP API)
 
@@ -101,7 +101,7 @@ the client. Other expression functions are not evaluated in header values.
 See `tests/fixtures/workflows/webserver/` (static only) and
 `tests/fixtures/workflows/api-web/` (API + web UI in one workflow).
 
-## agentSettings (runtime environment)
+## runtime (under deploy)
 
 ```yaml
 deploy:
@@ -136,21 +136,13 @@ deploy:
       KDEPS_DEFAULT_BACKEND: ollama
 ```
 
-## sqlConnections (pool config)
+## SQL connections
 
-DSN credentials go in `~/.kdeps/config.yaml` under `sql_connections:`. Pool
-settings live in the workflow:
+Connections (DSN, credentials) live only in `~/.kdeps/config.yaml` under
+`sql_connections:`; a workflow names one with the `sql` component's
+`connectionName`. A workflow never declares connections.
 
-```yaml
-deploy:
-  sqlConnections:
-    main:
-      driver: postgres
-      maxOpen: 10
-      maxIdle: 5
-```
-
-## session (persistent state)
+## memory (persistent session state)
 
 Omit the block entirely to disable sessions. When present, enables
 `set('key', val, 'session')`, `get('key', 'session')`, and `session()` across
@@ -166,10 +158,10 @@ memory:
 
 See `tests/fixtures/workflows/session/`.
 
-## input and llm
+## input and agent
 
-See `references/workflow-input.md` for `settings.input` (api, bot, file) and
-`settings.llm` (stdin REPL for `kdeps [path]` / `kdeps run --interactive`).
+See `references/workflow-input.md` for `deploy.input` (api, bot, file) and
+`agent:` (stdin REPL for `kdeps [path]` / `kdeps run --interactive`).
 
 ## Per-agent config overrides
 
