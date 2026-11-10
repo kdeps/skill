@@ -7,13 +7,13 @@ metadata:
   description: Skill fixture — settings.llm stdin REPL (kdeps [path] / --interactive)
   targetActionId: chat
 
-settings:
+deploy:
   input:
     sources: [api]
-  llm:
-    executionType: stdin
-    prompt: "You: "
-    sessionId: skill-llm-session
-  agentSettings:
+  runtime:
     timezone: UTC
     installOllama: true
+repl:
+  executionType: stdin
+  prompt: "You: "
+  sessionId: skill-llm-session

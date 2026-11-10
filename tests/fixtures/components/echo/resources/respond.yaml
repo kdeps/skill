@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [call]
+flow:
+  requires: [call]
 apiResponse:
   success: true
   response:

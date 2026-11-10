@@ -7,28 +7,32 @@ metadata:
   description: Skill fixture — items iteration and before expressions
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17619
     routes:
       - path: /api/v1/flow
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
 
 resources:
   - actionId: process
     name: Process Items
-    items:
-      - alpha
-      - beta
-      - gamma
-    exec:
-      command: 'printf "%s\n" "{{ get(''current'') }}"'
+    flow:
+      items:
+        - alpha
+        - beta
+        - gamma
+    component:
+      name: exec
+      with:
+        command: 'printf "%s\n" "{{ get(''current'') }}"'
 
   - actionId: respond
     name: API Response
-    requires: [process]
+    flow:
+      requires: [process]
     before:
       - set('count', len(get('process')))
     apiResponse:

@@ -21,13 +21,6 @@ if ! command -v kdeps >/dev/null 2>&1; then
   exit 1
 fi
 
-# Native scraper/searchWeb/searchLocal/embedding require a recent kdeps release.
-NATIVE_ACTIONS_SUPPORTED=true
-SCRAPER_ERR=$(kdeps validate "$FIXTURES/resources/scraper" 2>&1) || true
-if echo "$SCRAPER_ERR" | grep -q "execution type"; then
-  NATIVE_ACTIONS_SUPPORTED=false
-fi
-
 validate_path() {
   local label="$1"
   local path="$2"
@@ -47,13 +40,13 @@ verify_registry_path() {
   local label="$1"
   local path="$2"
   printf '%-40s ' "$label"
-  if kdeps registry verify "$path" >/dev/null 2>&1; then
-    echo "OK (registry verify)"
+  if kdeps verify "$path" >/dev/null 2>&1; then
+    echo "OK (verify)"
     PASS=$((PASS + 1))
     return 0
   fi
-  echo "FAIL (registry verify)"
-  kdeps registry verify "$path" 2>&1 | grep -E '\[ERROR\]|error:' | head -3
+  echo "FAIL (verify)"
+  kdeps verify "$path" 2>&1 | grep -E '\[ERROR\]|error:' | head -3
   FAIL=$((FAIL + 1))
   return 1
 }
@@ -116,17 +109,17 @@ install_roundtrip_path() {
     archive="${archives[0]}" &&
     KDEPS_AGENTS_DIR="$install_root/agents" \
     KDEPS_COMPONENT_DIR="$install_root/components" \
-    kdeps registry install "$archive" >/dev/null 2>&1 &&
+    kdeps install "$archive" >/dev/null 2>&1 &&
     rm -f ./*.kdeps ./*.kagency ./*.komponent docker-compose.yml 2>/dev/null
   ); then
     rm -rf "$install_root"
-    echo "OK (registry install)"
+    echo "OK (install)"
     PASS=$((PASS + 1))
     return 0
   fi
   rm -rf "$install_root"
   rm -f "$path"/*.kdeps "$path"/*.kagency "$path"/*.komponent "$path"/docker-compose.yml 2>/dev/null
-  echo "FAIL (registry install)"
+  echo "FAIL (install)"
   FAIL=$((FAIL + 1))
   return 1
 }
@@ -183,17 +176,7 @@ echo "fixtures: $FIXTURES"
 echo
 
 # --- Resources (one workflow per primary action) ---
-for action in exec httpClient python sql scraper searchWeb searchLocal embedding chat browser email telephony botReply file git codeIntelligence; do
-  case "$action" in
-    scraper|searchWeb|searchLocal|embedding)
-      if ! $NATIVE_ACTIONS_SUPPORTED; then
-        printf '%-40s ' "resource/$action"
-        echo "SKIP (upgrade kdeps for native $action)"
-        SKIP=$((SKIP + 1))
-        continue
-      fi
-      ;;
-  esac
+for action in exec httpClient python sql scraper searchWeb searchLocal embedding chat botReply file git; do
   validate_path "resource/$action" "$FIXTURES/resources/$action"
 done
 
@@ -250,7 +233,7 @@ if cp -R "$FIXTURES/resources/exec/." "$SCAFFOLD_TMP/" &&
   rm -f "$SCAFFOLD_TMP/kdeps.pkg.yaml" &&
   "$ROOT/skills/kdeps/scripts/scaffold-pkg.sh" "$SCAFFOLD_TMP" >/dev/null 2>&1 &&
   kdeps validate "$SCAFFOLD_TMP" >/dev/null 2>&1 &&
-  kdeps registry verify "$SCAFFOLD_TMP" >/dev/null 2>&1; then
+  kdeps verify "$SCAFFOLD_TMP" >/dev/null 2>&1; then
   echo "OK (scaffold-pkg)"
   PASS=$((PASS + 1))
 else
@@ -266,7 +249,7 @@ bundle_package_path "bundle/component-echo" "$FIXTURES/components/echo/component
 bundle_package_path "bundle/agency-simple" "$FIXTURES/agencies/simple"
 
 echo
-echo "Registry install (bundle -> kdeps registry install):"
+echo "Install (bundle -> kdeps install):"
 install_roundtrip_path "install/workflow-exec" "$FIXTURES/resources/exec"
 install_roundtrip_path "install/component-echo" "$FIXTURES/components/echo/components/echo"
 install_roundtrip_path "install/agency-simple" "$FIXTURES/agencies/simple"
@@ -281,14 +264,8 @@ if $RUN_TESTS; then
     "$FIXTURES/resources/exec" 17601 \
     'curl -sf -o /dev/null -H "Authorization: Bearer skill-test-token" http://127.0.0.1:17601/api/v1/exec'
 
-  if kdeps run --help 2>&1 | grep -q "self-test-only"; then
-    run_smoke "exec (--self-test-only)" \
-      "kdeps run \"$FIXTURES/resources/exec\" --port 17601 --self-test-only >/dev/null 2>&1"
-  else
-    printf '%-40s ' "exec (--self-test-only)"
-    echo "SKIP (flag not available in this kdeps version)"
-    SKIP=$((SKIP + 1))
-  fi
+  run_smoke "exec (kdeps test evals)" \
+    "KDEPS_API_AUTH_TOKEN=skill-test-token kdeps test \"$FIXTURES/resources/exec\" >/dev/null 2>&1"
 
   run_smoke "botReply (stateless)" \
     "printf '%s\n' '{\"message\":\"test\"}' | kdeps run \"$FIXTURES/resources/botReply\" 2>/dev/null | grep -q 'Hello from skill test'"

@@ -4,14 +4,14 @@ kind: Workflow
 metadata:
   name: skill-test-embedding
   version: "1.0.0"
-  description: Skill fixture — embedding resource
+  description: Skill fixture — embedding component call
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17608
     routes:
       - path: /api/v1/embedding
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC

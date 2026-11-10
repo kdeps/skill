@@ -7,12 +7,12 @@ metadata:
   description: Skill fixture — chat resource
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17609
     routes:
       - path: /api/v1/chat
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC
     installOllama: true

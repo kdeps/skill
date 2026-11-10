@@ -7,16 +7,16 @@ metadata:
   description: Skill fixture — session storage config
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17618
     routes:
       - path: /api/v1/session
         methods: [GET, POST]
-  agentSettings:
+  runtime:
     timezone: UTC
-  session:
-    type: sqlite
-    path: ":memory:"
-    ttl: 30m
-    cleanupInterval: 5m
+session:
+  type: sqlite
+  path: ":memory:"
+  ttl: 30m
+  cleanupInterval: 5m

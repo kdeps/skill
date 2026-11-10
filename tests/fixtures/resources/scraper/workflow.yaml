@@ -4,14 +4,14 @@ kind: Workflow
 metadata:
   name: skill-test-scraper
   version: "1.0.0"
-  description: Skill fixture — scraper resource
+  description: Skill fixture — scraper component call
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17605
     routes:
       - path: /api/v1/scrape
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC

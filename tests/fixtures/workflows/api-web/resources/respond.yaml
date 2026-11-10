@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [echo]
+flow:
+  requires: [echo]
 apiResponse:
   success: true
   response:

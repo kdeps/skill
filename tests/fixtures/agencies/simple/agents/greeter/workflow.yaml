@@ -7,13 +7,13 @@ metadata:
   description: Entry-point agent
   targetActionId: greet
 
-settings:
+deploy:
   apiServer:
     portNum: 17615
     routes:
       - path: /api/v1/greet
         methods: [GET, POST]
-  agentSettings:
+  runtime:
     timezone: UTC
 
 resources:
@@ -26,7 +26,8 @@ resources:
 
   - actionId: greet
     name: Greet
-    requires: [delegate]
+    flow:
+      requires: [delegate]
     apiResponse:
       success: true
       response: "{{ output('delegate') }}"

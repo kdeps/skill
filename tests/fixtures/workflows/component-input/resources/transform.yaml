@@ -1,9 +1,11 @@
 actionId: transform
 name: Transform Text
-exec:
-  command: |
-    python3 - <<'PYEOF'
-    import json
-    text = """{{ input('text') }}"""
-    print(json.dumps({"result": text.upper()}))
-    PYEOF
+component:
+  name: exec
+  with:
+    command: |
+      python3 - <<'PYEOF'
+      import json
+      text = """{{ input('text') }}"""
+      print(json.dumps({"result": text.upper()}))
+      PYEOF

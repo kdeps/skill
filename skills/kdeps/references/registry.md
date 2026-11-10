@@ -39,8 +39,8 @@ my-component/
 |-- kdeps.pkg.yaml
 |-- component.yaml
 |-- resources/          # optional
-|-- .env                # optional; scaffold with kdeps registry update
-`-- README.md           # optional; scaffold with kdeps registry update
+|-- .env                # optional
+`-- README.md           # optional
 ```
 
 ### Agency
@@ -63,8 +63,8 @@ separate registry packages.
 
 ## kdeps.pkg.yaml
 
-Required at the package root for `kdeps registry submit` and
-`kdeps registry verify`.
+Required at the package root for `kdeps submit` and
+`kdeps verify`.
 
 Scaffold from existing metadata (run from the package root):
 
@@ -75,7 +75,7 @@ scripts/scaffold-pkg.sh .    # in a project the skill created
 ```
 
 ```yaml
-name: my-agent              # registry install name (kdeps registry install my-agent)
+name: my-agent              # registry install name (kdeps install my-agent)
 version: "1.0.0"            # must match metadata.version in workflow.yaml / agency.yaml / component.yaml
 type: workflow              # workflow | component | agency
 description: "One-line summary shown on kdeps.io"
@@ -100,7 +100,7 @@ Field rules:
 Registry packages must not ship hardcoded secrets. Run before every publish:
 
 ```bash
-kdeps registry verify .
+kdeps verify .
 ```
 
 | Finding | Severity | Fix |
@@ -115,18 +115,11 @@ variables — never in `workflow.yaml`, `component.yaml`, or `agency.yaml`.
 
 ```bash
 kdeps bundle package .       # workflow -> .kdeps, component -> .komponent, agency -> .kagency
-kdeps registry install ./my-agent-1.0.0.kdeps   # install from local archive
+kdeps install ./my-agent-1.0.0.kdeps   # install from local archive
 ```
 
-For components, scaffold consumer docs without running the component:
-
-```bash
-kdeps registry update ./my-component
-```
-
-Creates or merges `.env` (empty template for detected `env()` vars) and
-`README.md` from `component.yaml` metadata. Existing files are never
-overwritten.
+For components, ship a `README.md` (inputs and output) and, when the
+component reads `env()` variables, a `.env` template listing them.
 
 ## Publish to kdeps.io
 
@@ -136,13 +129,13 @@ in the author's repo.
 ```bash
 # 1. Validate
 kdeps validate .
-kdeps registry verify .
+kdeps verify .
 
 # 2. Tag a release (version must match kdeps.pkg.yaml and metadata.version)
 git tag v1.0.0 && git push --tags
 
 # 3. Generate formula YAML (downloads tarball, computes SHA256)
-kdeps registry submit --tag v1.0.0
+kdeps submit --tag v1.0.0
 
 # 4. Open a PR to https://github.com/kdeps/registry
 #    Save output as formulas/<name>.yaml
@@ -151,10 +144,10 @@ kdeps registry submit --tag v1.0.0
 After merge, consumers install from anywhere:
 
 ```bash
-kdeps registry search my-agent
-kdeps registry install my-agent
-kdeps registry install my-agent@1.0.0
-kdeps registry install owner/repo          # directly from GitHub
+kdeps search my-agent
+kdeps install my-agent
+kdeps install my-agent@1.0.0
+kdeps install owner/repo          # directly from GitHub
 ```
 
 ## Checklist before finishing
@@ -164,7 +157,7 @@ When scaffolding any distributable project, ensure:
 1. `kdeps.pkg.yaml` exists at the package root with correct `type`.
 2. `metadata.version` matches `kdeps.pkg.yaml` `version`.
 3. `metadata.description` is set (used by agent mode and registry listings).
-4. No hardcoded secrets — `kdeps registry verify` passes with zero errors.
+4. No hardcoded secrets — `kdeps verify` passes with zero errors.
 5. `kdeps validate` passes on the package root.
 6. Optional: `kdeps bundle package` succeeds.
 7. Tell the user the publish steps (tag, submit, PR) if they want kdeps.io listing.
@@ -179,4 +172,4 @@ When scaffolding any distributable project, ensure:
 - Hardcoded API keys in YAML (verification ERROR).
 - Embedding a component only under `components/` in a workflow without a separate
   `kdeps.pkg.yaml` at the component root when the user wants it installable via
-  `kdeps registry install`.
+  `kdeps install`.

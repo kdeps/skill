@@ -4,8 +4,8 @@ description: >
   Create kdeps components, agents (workflows), and agencies. Use when the user
   wants to build a kdeps project, write workflow.yaml, component.yaml, or
   agency.yaml, configure workflow input (api, bot, file), add resources (chat,
-  httpClient, sql, python, exec, scraper, searchWeb, botReply, file, git,
-  codeIntelligence, apiResponse),
+  agent, component calls such as http_request, sql, python, exec, web_scraper,
+  web_search, file, git, and apiResponse),
   wire multi-agent pipelines, package/deploy a kdeps app, or publish to kdeps.io.
 license: Apache-2.0
 metadata:
@@ -100,8 +100,10 @@ Opt-in component tools inside a `chat:` resource:
 
 ```yaml
 chat:
-  prompt: "Research {{ get('q') }}"
-  componentTools: [scraper, search]
+  context:
+    prompt: "Research {{ get('q') }}"
+  tools:
+    components: [scraper, search]
 ```
 
 Built-in agent tools (always available unless an env var is listed):
@@ -149,7 +151,7 @@ commands.
 http, zapier) for CI/automation, keeping file, code, sql, memory, and
 orchestration tools.
 
-For `settings.llm` stdin REPL config, read `references/workflow-input.md`.
+For `agent:` stdin REPL config, read `references/workflow-input.md`.
 For `apiServer` auth, TLS, rate limits, and session, read
 `references/workflow-settings.md`.
 
@@ -170,10 +172,12 @@ Rules of thumb:
 
 - Every manifest starts with `apiVersion: kdeps.io/v1` and a `kind:`
   (`Workflow`, `Component`, or `Agency`).
-- A resource has exactly **one primary action** (`chat`, `httpClient`, `sql`,
-  `python`, `exec`, `email`, `browser`, `scraper`, `searchWeb`, `searchLocal`,
-  `embedding`, `telephony`, `botReply`, `agent`, `file`, `git`,
-  `codeIntelligence`, `loader`, `vectorStore`, `transcribe`, or `component`).
+- A workflow resource has exactly **one primary action**: `chat`, `agent`, or
+  `component`. Everything else (`exec`, `python`, `http_request`, `sql`,
+  `web_scraper`, `web_search`, `search_local`, `embedding`, `file`, `git`,
+  `load_document`, `vector_store`, ...) is a shipped component called with
+  `component: {name: <component>, with: {...}}`; writing `exec:` or
+  `httpClient:` directly fails validation.
   `apiResponse:` is not a primary action -- it may sit on the same resource as
   one, formatting that resource's output into the HTTP response.
 - One resource per file under `resources/`, **or** inline in `workflow.yaml`
@@ -199,7 +203,7 @@ Rules of thumb:
   `/hff search llama3` -> `/hff info <repo>` -> `/hff download <repo> <file>` ->
   `/model <alias>`. Uses `HF_TOKEN` env var for gated models.
   Ollama is an explicit opt-in: `installOllama: true` plus
-  `agentSettings.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
+  `runtime.env: {KDEPS_DEFAULT_BACKEND: ollama}`.
   Cloud backends: `openai`, `anthropic`, `google`, `mistral`, `groq`, `together`,
   `perplexity`, `cohere`, `deepseek`, `xai` (Grok), `openrouter` (100+ models).
   All configured in `~/.kdeps/config.yaml` under `llm.backend` and the matching
@@ -210,10 +214,12 @@ Rules of thumb:
 - **Every distributable project** needs `kdeps.pkg.yaml` at the package root
   (`type: workflow | component | agency`). Version must match `metadata.version`.
   For kdeps.io publishing, read `references/registry.md`.
-- Components cannot contain `settings:` (no servers, no ports). They are pure
+- Components cannot contain `deploy:` (no servers, no ports). They are pure
   resource bundles.
-- Every `workflow.yaml` requires a `settings:` block. Internal agency agents
-  without a server use a minimal one (e.g. `agentSettings: { timezone: "UTC" }`).
+- `workflow.yaml` top-level groups: `deploy:` (apiServer, webServer, TLS,
+  input, `runtime:`), `session:` (session store), `repl:` (LLM REPL input),
+  `resources:`, `evals:`. A chat groups its keys under `model:`, `context:`,
+  `harness:`, `tools:`, `rag:`, `guardrails:`.
 - Expression syntax: `{{ get('key') }}` reads request params or a resource's
   output by actionId; `output('actionId')` reads structured output;
   `set('k', v)` stores a value; `input('name')` reads a component input;
@@ -258,7 +264,7 @@ metadata:
   description: "What this agent does"   # shown to the LLM in agent mode
   targetActionId: response  # resource whose output becomes the HTTP response
 
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"
     portNum: 16395
@@ -291,17 +297,20 @@ validations:
     code: 400
     message: "'q' is required"
 chat:
-  model: llama3.2:1b        # llamafile alias - auto-downloaded, no LLM server needed
-  role: user
-  prompt: "{{ get('q') }}"
-  timeout: 60s              # hard stop; returns error, does not retry
+  model:
+    name: llama3.2:1b        # llamafile alias - auto-downloaded, no LLM server needed
+    timeout: 60s              # hard stop; returns error, does not retry
+  context:
+    role: user
+    prompt: "{{ get('q') }}"
 ```
 
 ```yaml
 # resources/response.yaml
 actionId: response
 name: API Response
-requires: [llm]             # will not run until llm finishes
+flow:
+  requires: [llm]             # will not run until llm finishes
 apiResponse:
   success: true
   response:
@@ -319,7 +328,7 @@ curl -X POST http://localhost:16395/api/v1/chat \
   -H "Authorization: Bearer $KDEPS_API_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"q": "hello"}'
-kdeps registry verify .          # before publishing to kdeps.io
+kdeps verify .                   # before publishing to kdeps.io
 kdeps bundle package .           # -> my-agent-1.0.0.kdeps
 ```
 
@@ -327,35 +336,32 @@ kdeps bundle package .           # -> my-agent-1.0.0.kdeps
 
 | Action | Output | Minimal form |
 |---|---|---|
-| `chat` | response map; text at `.message.content` | `chat: { model: llama3.2:1b, prompt: "..." }` |
-| `httpClient` | parsed response body | `httpClient: { method: GET, url: "https://..." }` |
-| `sql` | row set | `sql: { connectionName: analytics, query: "SELECT ..." }` |
-| `python` | stdout (parsed as JSON) | `python: { script: "print(...)" }` |
-| `exec` | stdout | `exec: { command: "echo hi" }` |
-| `telephony` | TwiML for voice calls | `telephony: { action: say, say: "Hello" }` |
-| `botReply` | reply to bot platform | `botReply: { text: "{{ get('llm') }}" }` |
-| `apiResponse` | HTTP response | `apiResponse: { success: true, response: { ... } }` |
+| `chat` | response map; text at `.message.content` | `chat: { model: { name: llama3.2:1b }, context: { prompt: "..." } }` |
 | `agent` | target agent's apiResponse | `agent: { name: other-agent, params: { k: v } }` |
-| `component` | component result | `component: { name: scraper, with: { url: "..." } }` |
-| `scraper` | page text (native) | `scraper: { url: "https://..." }` |
-| `searchWeb` | web results | `searchWeb: { query: "...", provider: ddg }` |
-| `searchLocal` | file matches | `searchLocal: { path: "/data", glob: "*.txt" }` |
-| `embedding` | index/search hits | `embedding: { operation: index, text: "..." }` |
-| `file` | result map | `file: { operation: read, path: "/tmp/data" }` |
-| `git` | result map | `git: { operation: status, workingDir: "/repo" }` |
-| `codeIntelligence` | result map | `codeIntelligence: { operation: symbolSearch, query: "parse", path: "." }` |
+| `component` | component output | `component: { name: http_request, with: { url: "https://..." } }` |
+| `apiResponse` | HTTP response (or a bot's reply) | `apiResponse: { success: true, response: { ... } }` |
 
-Native `scraper`, `searchWeb`, `searchLocal`, and `embedding` require a recent
-kdeps release. For PDF/.docx parsing or vector embeddings, install the registry
-component instead (`kdeps registry install scraper` / `embedding`).
+Shipped components called through `component:`:
 
-For the full schema of every action (chat sampling params, httpClient
-retry/cache/TLS, sql transactions, email IMAP search, browser actions,
-onError), read `references/resources.md`.
+| Component | Inputs (`with:`) |
+|---|---|
+| `http_request` | `url`, `method`, `headers`, `data`, `timeout`, `retry`, `cache`, `tls` |
+| `sql` | `connectionName` (from `~/.kdeps/config.yaml`), `query`, `params`, `format` |
+| `python` | `script` or `scriptFile`, `args`, `packages`, `timeout` |
+| `exec` | `command`, `args`, `env`, `workingDir`, `timeout` |
+| `web_scraper` / `web_search` | `url` / `query` |
+| `search_local` | `path`, `query`, `glob`, `limit` |
+| `embedding` | `operation`, `text`, `collection`, `dbPath` |
+| `file` | `operation` (read, write, ...), `path`, `content` |
+| `git` | `operation` (status, commit, ...), `workingDir`, `message` |
+
+For the full schema (chat groups, component inputs, onError), read
+`references/resources.md`.
 
 Optional per-resource fields: `description`, `category`,
-`items:` (run once per list item; read `get('current')`, `get('index')`),
-`loop:` (`while:` expression with `maxIterations`, optional `every:`/`at:`),
+`flow:` with `requires:`, `items:` (run once per list item; read
+`get('current')`, `get('index')`), `loop:` (`while:` expression with
+`maxIterations`, optional `every:`/`at:`) and `onError:`,
 `before:`/`after:` (expression lists run around the action), and
 `validations:` (`methods`/`routes`/`headers`/`params` gates, `skip:` silent
 no-op conditions, `check:` + `error:` hard validation).
@@ -364,10 +370,12 @@ no-op conditions, `check:` + `error:` hard validation).
 
 ```yaml
 chat:
-  prompt: "Research {{ get('q') }} and summarize."
-  componentTools:       # opt-in: expose installed components as function-calling tools
-    - scraper
-    - search
+  context:
+    prompt: "Research {{ get('q') }} and summarize."
+  tools:
+    components:       # opt-in: expose installed components as function-calling tools
+      - scraper
+      - search
 ```
 
 ### Multi-turn chat (conversation history)
@@ -377,12 +385,14 @@ Pass runtime history as role-tagged messages via `messages:` (kdeps from
 
 ```yaml
 chat:
-  model: llama3.2:1b
-  messages: "{{ get('history') }}"  # [{role: user, content: ...}, ...] from the request body
-  scenario:
-    - role: system
-      prompt: You are a helpful, concise assistant.
-  prompt: "{{ get('q') }}"
+  model:
+    name: llama3.2:1b
+  context:
+    messages: "{{ get('history') }}"  # [{role: user, content: ...}, ...] from the request body
+    scenario:
+      - role: system
+        prompt: You are a helpful, concise assistant.
+    prompt: "{{ get('q') }}"
 ```
 
 The client sends `{"q": "...", "history": [{"role":"user","content":"..."},
@@ -401,9 +411,9 @@ works. Requires kdeps from 2026-06-12 or later; details and the proxy
 
 ### Workflow input
 
-Declare how the workflow receives data via `settings.input`. Valid sources:
+Declare how the workflow receives data via `deploy.input`. Valid sources:
 `api`, `bot`, `file` — combine them when needed. For the full schema (bot
-platform config, file path resolution, combining sources, `settings.llm` REPL),
+platform config, file path resolution, combining sources, `agent:` REPL),
 read `references/workflow-input.md`.
 
 | Source | Use case |
@@ -414,7 +424,7 @@ read `references/workflow-input.md`.
 
 ```yaml
 # File input — runs once and exits
-settings:
+deploy:
   input:
     sources: [file]
     file:
@@ -424,20 +434,20 @@ settings:
 
 ```yaml
 # Stateless bot — stdin JSON in, stdout reply out
-settings:
+deploy:
   input:
     sources: [bot]
     bot:
       executionType: stateless
-# Use botReply: to send the reply
+# The target resource's apiResponse response is the reply text
 ```
 
 ```yaml
 # Component-only sub-workflow (no HTTP server)
-settings:
+deploy:
   input:
     sources: [api]
-  agentSettings:
+  runtime:
     pythonVersion: "3.12"
 # Invoked via component: from a parent workflow; inputs via with:
 ```
@@ -452,7 +462,7 @@ See `tests/fixtures/workflows/file-input/`,
 
 ### Built-in input component
 
-kdeps ships a pre-installed `input` component (no `kdeps registry install`). It
+kdeps ships a pre-installed `input` component (no `kdeps install`). It
 collects named slots (`query`, `prompt`, `text`, `data`, `key`, `value`, `a`–`h`)
 and returns them as JSON:
 
@@ -487,8 +497,8 @@ my-workflow/
 greeter/
 |-- kdeps.pkg.yaml
 |-- component.yaml
-|-- .env              # optional; kdeps registry update scaffolds this
-`-- README.md         # optional; kdeps registry update scaffolds this
+|-- .env              # optional
+`-- README.md         # optional
 ```
 
 `kdeps.pkg.yaml` for a standalone component:
@@ -565,12 +575,11 @@ Package and publish:
 
 ```bash
 kdeps bundle package ./components/greeter   # -> greeter-1.0.0.komponent
-kdeps registry verify ./components/greeter  # LLM-agnostic check (no hardcoded secrets)
-kdeps registry update ./components/greeter  # scaffold/merge .env and README.md
-kdeps registry install scraper              # install registry components
+kdeps verify ./components/greeter          # LLM-agnostic check (no hardcoded secrets)
+kdeps install <package>                     # install a registry component
 ```
 
-To list on kdeps.io: tag a release, run `kdeps registry submit --tag v1.0.0`,
+To list on kdeps.io: tag a release, run `kdeps submit --tag v1.0.0`,
 open a PR to `github.com/kdeps/registry`. Full steps in `references/registry.md`.
 
 ## Creating an agency
@@ -626,8 +635,8 @@ but every agent still needs a `settings:` block -- give internal agents a
 minimal one:
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     timezone: "UTC"
 ```
 
@@ -650,7 +659,7 @@ Run, package, and publish:
 
 ```bash
 kdeps run my-agency/                       # or my-agency/agency.yaml
-kdeps registry verify my-agency/             # LLM-agnostic check
+kdeps verify my-agency/                      # LLM-agnostic check
 kdeps bundle package my-agency/            # -> my-agency-1.0.0.kagency
 kdeps bundle build my-agency/ --tag my-agency:latest    # Docker image
 kdeps export iso my-agency/                # bootable ISO
@@ -668,7 +677,7 @@ Always validate, verify registry readiness, then run:
 
 ```bash
 kdeps validate .                 # exit 2 = validation error; run from package root
-kdeps registry verify .          # exit 1 = hardcoded secrets; WARN = review model names
+kdeps verify .                   # exit 1 = hardcoded secrets; WARN = review model names
 export KDEPS_API_AUTH_TOKEN=dev-token   # required whenever apiServer is set
 kdeps run <path>
 ```
@@ -678,11 +687,11 @@ If missing, run `scripts/scaffold-pkg.sh .` from the package root (or write it
 from `metadata.name`, `metadata.version`, and the package `type`).
 For publishing steps, read `references/registry.md`.
 
-Inline self-tests in `workflow.yaml` or `agency.yaml` (HTTP assertions against
-the live server):
+Inline evals in `workflow.yaml` (HTTP assertions against the workflow's
+router, plus optional `judges:`, `repeat:` and pass-rate `threshold:`):
 
 ```yaml
-tests:
+evals:
   - name: greet returns 200
     request:
       method: GET
@@ -694,13 +703,13 @@ tests:
 ```
 
 ```bash
-kdeps run workflow.yaml --self-test-only   # when available: exit 0 = all pass, 1 = failure
+kdeps test .                     # in-process, no port bound: exit 0 = all pass, 1 = failure
 ```
 
 Run the skill's fixture suite (requires `kdeps` on PATH):
 
 ```bash
-./tests/validate.sh          # validate, kdeps.pkg.yaml presence, registry verify, bundle
+./tests/validate.sh          # validate, kdeps.pkg.yaml presence, verify, bundle
 ./tests/validate.sh --run    # adds HTTP, bot, file, component, and agency smokes
 ```
 
@@ -722,7 +731,7 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 - Using `{{ inputs.x }}` inside component resources (use `get('<component>.<input>')`
   when called from HTTP workflows; `input('x')` only in component-only sub-workflows).
 - Using Jinja2 `{% for %}` over runtime values like `output('id').results` (use
-  expression helpers or a `python:` resource instead).
+  expression helpers or the `python` component instead).
 - Using `input('filePath')` for file input source (use `get('filePath')` /
   `get('fileContent')` — see `references/workflow-input.md`).
 - Omitting `settings:` on an internal agency agent (every workflow needs one).
@@ -736,7 +745,7 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 - Using dot-notation prose instead of actual YAML when explaining config to
   the user.
 - Omitting `kdeps.pkg.yaml` on a project meant for distribution (required for
-  `kdeps registry submit` and kdeps.io listing).
+  `kdeps submit` and kdeps.io listing).
 - Putting `kdeps.pkg.yaml` in a parent workflow when publishing a standalone
   component (belongs next to `component.yaml`).
 - Using `type: agent` in `kdeps.pkg.yaml` (use `type: workflow`).
@@ -759,6 +768,6 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 |---|---|
 | `references/resources.md` | Full schema per resource action |
 | `references/expressions.md` | Functions, operators, Jinja2 rules |
-| `references/workflow-input.md` | `settings.input` sources (api, bot, file) |
+| `references/workflow-input.md` | `deploy.input` sources (api, bot, file) |
 | `references/workflow-settings.md` | `apiServer`, auth, TLS, `agentSettings` |
 | `references/registry.md` | `kdeps.pkg.yaml`, verify, bundle, publish to kdeps.io |

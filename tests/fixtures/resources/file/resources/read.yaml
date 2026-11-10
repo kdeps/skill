@@ -1,6 +1,9 @@
 actionId: readFile
 name: Read File
-requires: [createFile]
-file:
-  operation: read
-  path: /tmp/skill-test-file.json
+flow:
+  requires: [createFile]
+component:
+  name: file
+  with:
+    operation: read
+    path: /tmp/skill-test-file.json

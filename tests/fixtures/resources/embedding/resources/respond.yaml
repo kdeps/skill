@@ -1,7 +1,8 @@
 actionId: respond
 name: API Response
-requires: [index]
+flow:
+  requires: [index]
 apiResponse:
   success: true
   response:
-    indexed: output('index').success
+    indexed: output('index')

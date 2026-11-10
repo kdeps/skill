@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [fetch]
+flow:
+  requires: [fetch]
 apiResponse:
   success: true
   response:

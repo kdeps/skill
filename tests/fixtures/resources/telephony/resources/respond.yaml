@@ -1,7 +1,0 @@
-actionId: respond
-name: API Response
-requires: [answer]
-apiResponse:
-  success: true
-  response:
-    twiml: get('answer').twiml

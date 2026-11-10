@@ -7,12 +7,12 @@ metadata:
   description: Parent workflow that calls a local component
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17616
     routes:
       - path: /api/v1/transform
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC
     pythonVersion: "3.12"

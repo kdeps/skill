@@ -8,6 +8,7 @@ validations:
   error:
     code: 400
     message: "url is required"
-scraper:
-  url: "{{ get('url') }}"
-  timeout: 30
+component:
+  name: web_scraper
+  with:
+    url: "{{ get('url') }}"

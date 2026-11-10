@@ -1,6 +1,7 @@
 actionId: respond
 name: API Response
-requires: [readFile]
+flow:
+  requires: [readFile]
 apiResponse:
   success: true
   response:

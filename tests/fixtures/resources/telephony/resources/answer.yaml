@@ -1,6 +1,0 @@
-actionId: answer
-name: Answer Call
-telephony:
-  action: say
-  say: "Welcome to the skill test."
-  voice: alice

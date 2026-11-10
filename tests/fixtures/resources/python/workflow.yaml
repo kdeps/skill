@@ -4,15 +4,15 @@ kind: Workflow
 metadata:
   name: skill-test-python
   version: "1.0.0"
-  description: Skill fixture — python resource
+  description: Skill fixture — python component call
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17603
     routes:
       - path: /api/v1/py
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
     pythonVersion: "3.12"

@@ -1,13 +1,13 @@
 # Workflow Settings Reference
 
-`settings:` in `workflow.yaml` configures servers, runtime environment, and
-optional features. Every workflow requires a `settings:` block (agency internal
-agents may use a minimal one).
+`workflow.yaml` configures how a workflow is served under `deploy:` (servers,
+TLS, input sources, `runtime:`), its session store under `session:`, and its
+stdin REPL under `repl:`. All three are optional.
 
 ## apiServer (HTTP API)
 
 ```yaml
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"      # bind address; 0.0.0.0 for all interfaces
     portNum: 16395
@@ -48,7 +48,7 @@ preflight, which blocks all cross-origin browser requests.)
 TLS (optional — omit for plain HTTP):
 
 ```yaml
-settings:
+deploy:
   certFile: /path/to/cert.pem
   keyFile: /path/to/key.pem
   apiServer:
@@ -62,7 +62,7 @@ Serves static assets or proxies upstream apps. Shares `rateLimit`,
 serve static files may set `metadata.targetActionId: none`.
 
 ```yaml
-settings:
+deploy:
   webServer:
     portNum: 8080
     routes:
@@ -101,11 +101,11 @@ the client. Other expression functions are not evaluated in header values.
 See `tests/fixtures/workflows/webserver/` (static only) and
 `tests/fixtures/workflows/api-web/` (API + web UI in one workflow).
 
-## agentSettings (runtime environment)
+## runtime (under deploy)
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     timezone: UTC
     pythonVersion: "3.12"
     pythonPackages: [pandas, requests]
@@ -129,48 +129,39 @@ pre-baked instead. To use ollama, set `installOllama: true` and pin the
 runtime backend:
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     installOllama: true
     env:
       KDEPS_DEFAULT_BACKEND: ollama
 ```
 
-## sqlConnections (pool config)
+## SQL connections
 
-DSN credentials go in `~/.kdeps/config.yaml` under `sql_connections:`. Pool
-settings live in the workflow:
+Connections (DSN, credentials) live only in `~/.kdeps/config.yaml` under
+`sql_connections:`; a workflow names one with the `sql` component's
+`connectionName`. A workflow never declares connections.
 
-```yaml
-settings:
-  sqlConnections:
-    main:
-      driver: postgres
-      maxOpen: 10
-      maxIdle: 5
-```
-
-## session (persistent state)
+## session (persistent session state)
 
 Omit the block entirely to disable sessions. When present, enables
 `set('key', val, 'session')`, `get('key', 'session')`, and `session()` across
 requests.
 
 ```yaml
-settings:
-  session:
-    type: sqlite              # sqlite (default) or memory
-    path: ":memory:"          # SQLite path; default ~/.kdeps/sessions.db
-    ttl: 30m                  # session expiration
-    cleanupInterval: 5m       # expired session cleanup interval
+session:
+  type: sqlite              # sqlite (default) or memory
+  path: ":memory:"          # SQLite path; default ~/.kdeps/sessions.db
+  ttl: 30m                  # session expiration
+  cleanupInterval: 5m       # expired session cleanup interval
 ```
 
 See `tests/fixtures/workflows/session/`.
 
-## input and llm
+## input and repl
 
-See `references/workflow-input.md` for `settings.input` (api, bot, file) and
-`settings.llm` (stdin REPL for `kdeps [path]` / `kdeps run --interactive`).
+See `references/workflow-input.md` for `deploy.input` (api, bot, file) and
+`repl:` (stdin REPL for `kdeps [path]` / `kdeps run --interactive`).
 
 ## Per-agent config overrides
 

@@ -7,25 +7,28 @@ metadata:
   description: Skill fixture — inline resources in workflow.yaml
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17614
     routes:
       - path: /api/v1/inline
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
 
 resources:
   - actionId: run
     name: Inline Exec
-    exec:
-      command: "echo '{\"inline\":true}'"
-      timeout: 10s
+    component:
+      name: exec
+      with:
+        command: "echo '{\"inline\":true}'"
+        timeout: 10s
 
   - actionId: respond
     name: API Response
-    requires: [run]
+    flow:
+      requires: [run]
     apiResponse:
       success: true
       response:

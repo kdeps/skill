@@ -1,6 +1,8 @@
 actionId: search
 name: Local Search
-searchLocal:
-  path: "{{ get('path', '.') }}"
-  glob: "*.yaml"
-  limit: 5
+component:
+  name: search_local
+  with:
+    path: "{{ get('path', '.') }}"
+    glob: "*.yaml"
+    limit: 5

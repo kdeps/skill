@@ -1,6 +1,9 @@
 actionId: checkStatus
 name: Check Status
-requires: [repoCheck]
-git:
-  operation: status
-  workingDir: /tmp/skill-test-git-repo
+flow:
+  requires: [repoCheck]
+component:
+  name: git
+  with:
+    operation: status
+    workingDir: /tmp/skill-test-git-repo

@@ -7,8 +7,8 @@ metadata:
   description: Helper agent
   targetActionId: respond
 
-settings:
-  agentSettings:
+deploy:
+  runtime:
     timezone: UTC
 
 resources:

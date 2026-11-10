@@ -29,7 +29,7 @@ get('limit', '10')              # second positional arg can also be a default va
 
 set('count', 1)                 # store in memory (request-scoped)
 set('user', data, 'session')    # store in session (persists across requests;
-                                # needs settings.session in workflow.yaml)
+                                # needs memory in workflow.yaml)
 
 output('llmResource')           # output of a completed resource, by actionId;
                                 # prefer over get() when auto-detection is ambiguous
@@ -153,9 +153,10 @@ after:
   - set('displayName', get('name') ?? 'Guest')
 
 chat:
-  prompt: |                       # {{ }} interpolation in string fields
-    User is {{ get('age') >= 18 ? 'adult' : 'minor' }}.
-    Role: {{ get('role') ?? 'user' }}.
+  context:
+    prompt: |                       # {{ }} interpolation in string fields
+      User is {{ get('age') >= 18 ? 'adult' : 'minor' }}.
+      Role: {{ get('role') ?? 'user' }}.
 ```
 
 Keep expressions simple -- complex logic belongs in a `python:` resource.

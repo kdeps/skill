@@ -4,18 +4,14 @@ kind: Workflow
 metadata:
   name: skill-test-sql
   version: "1.0.0"
-  description: Skill fixture — sql resource (schema validation only)
+  description: Skill fixture — sql component call (schema validation only)
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17604
     routes:
       - path: /api/v1/sql
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
-  sqlConnections:
-    main:
-      driver: sqlite
-      dsn: ":memory:"

@@ -4,14 +4,14 @@ kind: Workflow
 metadata:
   name: skill-test-http
   version: "1.0.0"
-  description: Skill fixture — httpClient resource
+  description: Skill fixture — httpClient component call
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17602
     routes:
       - path: /api/v1/fetch
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC

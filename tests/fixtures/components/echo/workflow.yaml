@@ -7,12 +7,12 @@ metadata:
   description: Skill fixture — component invocation
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     portNum: 17613
     routes:
       - path: /api/v1/echo
         methods: [POST]
-  agentSettings:
+  runtime:
     timezone: UTC
     pythonVersion: "3.12"

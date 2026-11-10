@@ -1,6 +1,6 @@
 # Workflow Input Reference
 
-`settings.input` declares how a workflow receives data. Combine sources when a
+`deploy.input` declares how a workflow receives data. Combine sources when a
 workflow needs multiple entry points (e.g. HTTP API plus a Telegram bot).
 
 ## Sources
@@ -11,16 +11,16 @@ workflow needs multiple entry points (e.g. HTTP API plus a Telegram bot).
 | `bot` | Discord, Slack, Telegram, WhatsApp | Yes for `polling`; no for `stateless` |
 | `file` | Single-shot file processing | No — runs once and exits |
 
-Valid values: `api`, `bot`, `file`. Omit `settings.input` entirely when
+Valid values: `api`, `bot`, `file`. Omit `deploy.input` entirely when
 `apiServer` handles HTTP and no bot or file input is needed.
 
 ### API (HTTP)
 
-Default for workflows with `settings.apiServer`. Request params, headers, JSON
+Default for workflows with `deploy.apiServer`. Request params, headers, JSON
 body, and uploads are read via `get('key')`, `input('key')`, or `file('*.pdf')`.
 
 ```yaml
-settings:
+deploy:
   apiServer:
     portNum: 16395
     routes:
@@ -32,8 +32,8 @@ settings:
 Callable sub-workflow (no HTTP server — driven by parent `component:` calls):
 
 ```yaml
-settings:
-  agentSettings:
+deploy:
+  runtime:
     pythonVersion: "3.12"
   input:
     sources: [api]
@@ -47,13 +47,13 @@ referenced. Inputs arrive through the caller's `with:` map and are read with
 ### Bot
 
 Credentials live in `~/.kdeps/config.yaml` under `bot_connections:` (never in
-`workflow.yaml`). Platform-specific blocks under `settings.input.bot` configure
+`workflow.yaml`). Platform-specific blocks under `deploy.input.bot` configure
 polling intervals, guild filters, and webhook ports.
 
 **Polling** (long-running listener):
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [bot]
     bot:
@@ -71,7 +71,7 @@ settings:
 **Stateless** (one-shot stdin JSON → stdout reply):
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [bot]
     bot:
@@ -82,8 +82,8 @@ settings:
 echo '{"message":"hello"}' | kdeps run workflow.yaml
 ```
 
-Use a `botReply:` resource to send the platform reply (or stdout in stateless
-mode). Bot webhook fields (`CallSid`, `From`, `SpeechResult`, …) are available
+The target resource's `apiResponse` response is the platform reply (or stdout in
+stateless mode). Bot webhook fields (`CallSid`, `From`, `SpeechResult`, …) are available
 via `get('field')` inside resources.
 
 ### File
@@ -93,10 +93,10 @@ Single-shot execution. Content is loaded from, in order:
 1. `kdeps run workflow.yaml --file /path/to/doc.txt`
 2. Stdin (plain text or JSON `{"path":"...","content":"..."}`)
 3. `KDEPS_FILE_PATH` environment variable
-4. `settings.input.file.path` default
+4. `deploy.input.file.path` default
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [file]
     file:
@@ -132,7 +132,7 @@ KDEPS_FILE_PATH=./doc.txt kdeps run workflow.yaml
 ## Combining sources
 
 ```yaml
-settings:
+deploy:
   apiServer:
     portNum: 16395
     routes:
@@ -150,19 +150,19 @@ Each source activates its own runner. Resources gate themselves with
 `validations.routes` / `validations.methods` when they only apply to one entry
 point.
 
-## LLM stdin REPL (`settings.llm`)
+## LLM stdin REPL (`repl:`)
 
-Separate from `settings.input` — configures interactive agent-mode REPL when
+Separate from `deploy.input` — configures interactive agent-mode REPL when
 using `kdeps [path]` or `kdeps run --interactive`:
 
 ```yaml
-settings:
+deploy:
   input:
     sources: [api]
-  llm:
-    executionType: stdin       # stdin (default REPL) or apiServer
-    prompt: "You: "
-    sessionId: llm-chat-session
+repl:
+  executionType: stdin       # stdin (default REPL) or apiServer
+  prompt: "You: "
+  sessionId: llm-chat-session
 ```
 
 ## Reading input in resources

@@ -4,20 +4,20 @@ kind: Workflow
 metadata:
   name: skill-test-file
   version: "1.0.0"
-  description: Skill fixture — file resource
+  description: Skill fixture — file component call
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"
     portNum: 17602
     routes:
       - path: /api/v1/file
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
 
-tests:
+evals:
   - name: file endpoint returns 200
     request:
       method: GET

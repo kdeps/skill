@@ -4,20 +4,20 @@ kind: Workflow
 metadata:
   name: skill-test-git
   version: "1.0.0"
-  description: Skill fixture — git resource
+  description: Skill fixture — git component call
   targetActionId: respond
 
-settings:
+deploy:
   apiServer:
     hostIp: "127.0.0.1"
     portNum: 17603
     routes:
       - path: /api/v1/git
         methods: [GET]
-  agentSettings:
+  runtime:
     timezone: UTC
 
-tests:
+evals:
   - name: git endpoint returns 200
     request:
       method: GET
