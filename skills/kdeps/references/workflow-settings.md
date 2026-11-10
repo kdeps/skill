@@ -1,8 +1,8 @@
 # Workflow Settings Reference
 
 `workflow.yaml` configures how a workflow is served under `deploy:` (servers,
-TLS, input sources, `runtime:`), its session store under `memory:`, and its
-stdin REPL under `agent:`. All three are optional.
+TLS, input sources, `runtime:`), its session store under `session:`, and its
+stdin REPL under `repl:`. All three are optional.
 
 ## apiServer (HTTP API)
 
@@ -142,14 +142,14 @@ Connections (DSN, credentials) live only in `~/.kdeps/config.yaml` under
 `sql_connections:`; a workflow names one with the `sql` component's
 `connectionName`. A workflow never declares connections.
 
-## memory (persistent session state)
+## session (persistent session state)
 
 Omit the block entirely to disable sessions. When present, enables
 `set('key', val, 'session')`, `get('key', 'session')`, and `session()` across
 requests.
 
 ```yaml
-memory:
+session:
   type: sqlite              # sqlite (default) or memory
   path: ":memory:"          # SQLite path; default ~/.kdeps/sessions.db
   ttl: 30m                  # session expiration
@@ -158,10 +158,10 @@ memory:
 
 See `tests/fixtures/workflows/session/`.
 
-## input and agent
+## input and repl
 
 See `references/workflow-input.md` for `deploy.input` (api, bot, file) and
-`agent:` (stdin REPL for `kdeps [path]` / `kdeps run --interactive`).
+`repl:` (stdin REPL for `kdeps [path]` / `kdeps run --interactive`).
 
 ## Per-agent config overrides
 

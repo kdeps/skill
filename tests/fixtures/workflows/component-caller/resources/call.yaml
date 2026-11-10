@@ -1,6 +1,6 @@
 actionId: call
 name: Call Uppercase Component
-guardrails:
+validations:
   check:
     - get('text') != ''
   error:

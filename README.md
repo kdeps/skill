@@ -81,7 +81,7 @@ CI runs all three on every push to `main`.
 | `workflows/component-caller` | Parent workflow + `component:` call |
 | `workflows/llm-repl` | `agent:` stdin REPL (`kdeps [path]`) |
 | `workflows/webserver` | Static `webServer` |
-| `workflows/session` | `memory:` SQLite config |
+| `workflows/session` | `session:` SQLite config |
 | `workflows/control-flow` | `items:` iteration + `before:` expressions |
 | `agencies/simple` | Two-agent agency + `agent:` resource |
 | `components/echo/.../echo` | Standalone component package |

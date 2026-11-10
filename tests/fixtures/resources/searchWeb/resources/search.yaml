@@ -1,6 +1,6 @@
 actionId: search
 name: Web Search
-guardrails:
+validations:
   check:
     - get('query') != ''
   error:

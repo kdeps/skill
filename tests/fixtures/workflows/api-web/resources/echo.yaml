@@ -1,6 +1,6 @@
 actionId: echo
 name: Echo Text
-guardrails:
+validations:
   methods: [POST]
   routes: [/api/v1/echo]
   check:

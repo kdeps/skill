@@ -7,7 +7,7 @@ inputs are listed below (from each component's `interface.inputs`).
 `apiResponse:` may sit on the same resource to format its output into the
 HTTP response. One resource per file (only the first YAML document in a file
 is loaded). Common cross-cutting fields (`actionId`, `workflow:` with
-`requires`/`items`/`loop`/`onError`, `guardrails`, `before`, `after`) are at
+`requires`/`items`/`loop`/`onError`, `validations`, `before`, `after`) are at
 the end of this file.
 
 ## chat (LLM)
@@ -358,8 +358,9 @@ apiResponse:
     Content-Type: application/json
     X-Total-Count: get('fetchItems').total
   statusCode: 200               # optional HTTP status code
-  model: llama3.2:1b            # optional metadata override; if a chat resource
-  backend: file                 # ran, model/backend are added automatically
+  meta:                         # optional _meta override; if a chat resource
+    model: llama3.2:1b          # ran, model/backend are added automatically
+    backend: file
 ```
 
 In a bot workflow (`deploy.input.sources: [bot]`), the target resource's
@@ -399,7 +400,7 @@ workflow:
     when:                     # apply onError only if one is true; else propagate
       - error.type == 'TIMEOUT'
       - error.message contains 'connection refused'
-guardrails:
+validations:
   methods: [POST]           # gate by request method
   routes: [/api/v1/x]       # gate by route
   headers: [Authorization]  # gate by header presence

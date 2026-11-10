@@ -1,6 +1,6 @@
 actionId: llm
 name: LLM Chat
-guardrails:
+validations:
   methods: [POST]
   routes: [/api/v1/chat]
   check:

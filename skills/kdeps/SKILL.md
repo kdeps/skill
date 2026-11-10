@@ -217,7 +217,7 @@ Rules of thumb:
 - Components cannot contain `deploy:` (no servers, no ports). They are pure
   resource bundles.
 - `workflow.yaml` top-level groups: `deploy:` (apiServer, webServer, TLS,
-  input, `runtime:`), `memory:` (session store), `agent:` (LLM REPL input),
+  input, `runtime:`), `session:` (session store), `repl:` (LLM REPL input),
   `resources:`, `evals:`. A chat groups its keys under `model:`, `context:`,
   `harness:`, `tools:`, `rag:`, `guardrails:`.
 - Expression syntax: `{{ get('key') }}` reads request params or a resource's
@@ -288,7 +288,7 @@ A resource per file under `resources/`:
 # resources/llm.yaml
 actionId: llm
 name: LLM Chat
-guardrails:
+validations:
   methods: [POST]
   routes: [/api/v1/chat]
   check:
@@ -363,7 +363,7 @@ Optional per-resource fields: `description`, `category`,
 `get('current')`, `get('index')`), `loop:` (`while:` expression with
 `maxIterations`, optional `every:`/`at:`) and `onError:`,
 `before:`/`after:` (expression lists run around the action), and
-`guardrails:` (`methods`/`routes`/`headers`/`params` gates, `skip:` silent
+`validations:` (`methods`/`routes`/`headers`/`params` gates, `skip:` silent
 no-op conditions, `check:` + `error:` hard validation).
 
 ### LLM tools in a chat resource

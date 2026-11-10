@@ -147,10 +147,10 @@ deploy:
 ```
 
 Each source activates its own runner. Resources gate themselves with
-`guardrails.routes` / `guardrails.methods` when they only apply to one entry
+`validations.routes` / `validations.methods` when they only apply to one entry
 point.
 
-## LLM stdin REPL (`agent:`)
+## LLM stdin REPL (`repl:`)
 
 Separate from `deploy.input` — configures interactive agent-mode REPL when
 using `kdeps [path]` or `kdeps run --interactive`:
@@ -159,7 +159,7 @@ using `kdeps [path]` or `kdeps run --interactive`:
 deploy:
   input:
     sources: [api]
-agent:
+repl:
   executionType: stdin       # stdin (default REPL) or apiServer
   prompt: "You: "
   sessionId: llm-chat-session
