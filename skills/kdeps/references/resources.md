@@ -6,7 +6,7 @@ component called with `component: {name: <component>, with: {...}}`; its
 inputs are listed below (from each component's `interface.inputs`).
 `apiResponse:` may sit on the same resource to format its output into the
 HTTP response. One resource per file (only the first YAML document in a file
-is loaded). Common cross-cutting fields (`actionId`, `workflow:` with
+is loaded). Common cross-cutting fields (`actionId`, `flow:` with
 `requires`/`items`/`loop`/`onError`, `validations`, `before`, `after`) are at
 the end of this file.
 
@@ -376,7 +376,7 @@ name: My Resource           # required; human-readable label
 description: What it does   # optional
 category: api               # optional grouping
 
-workflow:
+flow:
   requires: [otherResource]   # direct dependencies only; transitive are resolved
 
   items:                      # run once per item; get('current'), get('prev'),

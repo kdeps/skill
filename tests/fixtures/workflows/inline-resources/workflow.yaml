@@ -27,7 +27,7 @@ resources:
 
   - actionId: respond
     name: API Response
-    workflow:
+    flow:
       requires: [run]
     apiResponse:
       success: true

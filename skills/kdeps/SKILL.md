@@ -309,7 +309,7 @@ chat:
 # resources/response.yaml
 actionId: response
 name: API Response
-workflow:
+flow:
   requires: [llm]             # will not run until llm finishes
 apiResponse:
   success: true
@@ -359,7 +359,7 @@ For the full schema (chat groups, component inputs, onError), read
 `references/resources.md`.
 
 Optional per-resource fields: `description`, `category`,
-`workflow:` with `requires:`, `items:` (run once per list item; read
+`flow:` with `requires:`, `items:` (run once per list item; read
 `get('current')`, `get('index')`), `loop:` (`while:` expression with
 `maxIterations`, optional `every:`/`at:`) and `onError:`,
 `before:`/`after:` (expression lists run around the action), and

@@ -1,6 +1,6 @@
 actionId: checkStatus
 name: Check Status
-workflow:
+flow:
   requires: [repoCheck]
 component:
   name: git

@@ -19,7 +19,7 @@ deploy:
 resources:
   - actionId: process
     name: Process Items
-    workflow:
+    flow:
       items:
         - alpha
         - beta
@@ -31,7 +31,7 @@ resources:
 
   - actionId: respond
     name: API Response
-    workflow:
+    flow:
       requires: [process]
     before:
       - set('count', len(get('process')))

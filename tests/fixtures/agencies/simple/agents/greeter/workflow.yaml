@@ -26,7 +26,7 @@ resources:
 
   - actionId: greet
     name: Greet
-    workflow:
+    flow:
       requires: [delegate]
     apiResponse:
       success: true

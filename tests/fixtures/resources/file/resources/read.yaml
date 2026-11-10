@@ -1,6 +1,6 @@
 actionId: readFile
 name: Read File
-workflow:
+flow:
   requires: [createFile]
 component:
   name: file
