@@ -4,16 +4,15 @@ kind: Workflow
 metadata:
   name: skill-test-llm-repl
   version: "1.0.0"
-  description: Skill fixture — settings.llm stdin REPL (kdeps [path] / --interactive)
+  description: "Skill fixture - interactive input source with a repl prompt and sessionId"
   targetActionId: chat
 
 deploy:
   input:
-    sources: [api]
+    sources: [interactive]
   runtime:
     timezone: UTC
     installOllama: true
 repl:
-  executionType: stdin
   prompt: "You: "
   sessionId: skill-llm-session
