@@ -150,18 +150,18 @@ Each source activates its own runner. Resources gate themselves with
 `validations.routes` / `validations.methods` when they only apply to one entry
 point.
 
-## LLM stdin REPL (`repl:`)
+## Interactive prompt (`interactive` source)
 
-Separate from `deploy.input` — configures interactive agent-mode REPL when
-using `kdeps [path]` or `kdeps run --interactive`:
+`interactive` under `deploy.input.sources` makes `kdeps run` a prompt: each
+line runs the target resource with that line as `input('message')`. `repl:`
+sets the prompt text and the session id:
 
 ```yaml
 deploy:
   input:
-    sources: [api]
+    sources: [interactive]   # add api, bot or file to keep those running too
 repl:
-  executionType: stdin       # stdin (default REPL) or apiServer
-  prompt: "You: "
+  prompt: "You: "            # default "> "
   sessionId: llm-chat-session
 ```
 
