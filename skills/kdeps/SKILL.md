@@ -579,8 +579,8 @@ kdeps verify ./components/greeter          # LLM-agnostic check (no hardcoded se
 kdeps install <package>                     # install a registry component
 ```
 
-To list on kdeps.io: tag a release, run `kdeps submit --tag v1.0.0`,
-open a PR to `github.com/kdeps/registry`. Full steps in `references/registry.md`.
+To publish: tag a release, run `kdeps create <release-archive-url>`, and
+open a PR to `github.com/kdeps/registry` with the printed formula. Full steps in `references/registry.md`.
 
 ## Creating an agency
 
@@ -745,7 +745,7 @@ Use `--debug` to troubleshoot. `kdeps doctor` checks the environment.
 - Using dot-notation prose instead of actual YAML when explaining config to
   the user.
 - Omitting `kdeps.pkg.yaml` on a project meant for distribution (required for
-  `kdeps submit` and kdeps.io listing).
+  `kdeps create` and a registry listing).
 - Putting `kdeps.pkg.yaml` in a parent workflow when publishing a standalone
   component (belongs next to `component.yaml`).
 - Using `type: agent` in `kdeps.pkg.yaml` (use `type: workflow`).

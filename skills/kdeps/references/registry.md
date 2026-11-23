@@ -63,7 +63,7 @@ separate registry packages.
 
 ## kdeps.pkg.yaml
 
-Required at the package root for `kdeps submit` and
+Required at the package root for `kdeps create` and
 `kdeps verify`.
 
 Scaffold from existing metadata (run from the package root):
@@ -134,8 +134,8 @@ kdeps verify .
 # 2. Tag a release (version must match kdeps.pkg.yaml and metadata.version)
 git tag v1.0.0 && git push --tags
 
-# 3. Generate formula YAML (downloads tarball, computes SHA256)
-kdeps submit --tag v1.0.0
+# 3. Print the formula (downloads the archive, computes SHA256, reads kdeps.pkg.yaml)
+kdeps create https://github.com/<owner>/<repo>/archive/refs/tags/v1.0.0.tar.gz
 
 # 4. Open a PR to https://github.com/kdeps/registry
 #    Save output as formulas/<name>.yaml
@@ -144,7 +144,7 @@ kdeps submit --tag v1.0.0
 After merge, consumers install from anywhere:
 
 ```bash
-kdeps search my-agent
+kdeps search my-agent             # text, or /regex/
 kdeps install my-agent
 kdeps install my-agent@1.0.0
 kdeps install owner/repo          # directly from GitHub
@@ -160,11 +160,11 @@ When scaffolding any distributable project, ensure:
 4. No hardcoded secrets — `kdeps verify` passes with zero errors.
 5. `kdeps validate` passes on the package root.
 6. Optional: `kdeps bundle package` succeeds.
-7. Tell the user the publish steps (tag, submit, PR) if they want kdeps.io listing.
+7. Tell the user the publish steps (tag, `kdeps create`, PR) if they want a registry listing.
 
 ## Common mistakes
 
-- Omitting `kdeps.pkg.yaml` (package cannot be submitted to the registry).
+- Omitting `kdeps.pkg.yaml` (package cannot be published to a registry).
 - Putting `kdeps.pkg.yaml` in a parent workflow directory when publishing a
   **standalone component** (belongs next to `component.yaml`).
 - `type: agent` — invalid; use `type: workflow`.
